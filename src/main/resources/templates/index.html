@@ -1,1 +1,43 @@
-hi2
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 홈화면</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Welcome to Our Site</h1>
+
+<a th:href="@{/login}" class="btn">로그인</a>
+<a th:href="@{/signup}" class="btn">회원가입</a>
+<a th:href="@{/planner}" class="btn">플래너</a>
+<a th:href="@{/blog}" class="btn">블로그 홈</a>
+
+</body>
+</html>
