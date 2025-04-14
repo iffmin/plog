@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .login-wrapper{
+            width: 400px;
+            height: 350px;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        .login-wrapper > h2 {
+            font-size: 30px;
+            color: rgb(212, 179, 31);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <h2>Login</h2>
+        <form method="post" action="서버의url" id="login-form">
+            <input type="text" name="userName" placeholder="아이디">
+            <input type="password" name="userPassword" placeholder="비밀번호">
+            <br>
+            <label for="remember-check">
+                <input type="checkbox" id="remember-check">아아디 저장하기
+            </label>
+            <br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+    
+</body>
+</html>
+
+
