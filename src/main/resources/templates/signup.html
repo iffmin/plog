@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <script>
+        function validateForm() {
+            const name = document.getElementById("name");
+            const username = document.getElementById("username");
+            const email = document.getElementById("email");
+            const password = document.getElementById("password");
+            const confirmPassword = document.getElementById("confirmPassword");
+            const signupBtn = document.getElementById("signupBtn");
+
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+            const passwordsMatch = password.value === confirmPassword.value;
+            const nameValid = name.value.trim() !== "";
+            const usernameValid = username.value.trim() !== "";
+
+            signupBtn.disabled = !(emailValid && passwordsMatch && nameValid && usernameValid);
+        }
+    </script>
+</head>
+<body>
+<h2>회원가입</h2>
+<form th:action="@{/signupProc}" method="post">
+    <div>
+        <label for="name">이름</label>
+        <input type="text" id="name" name="name" required oninput="validateForm()" />
+    </div>
+    <div>
+        <label for="username">아이디</label>
+        <input type="text" id="username" name="username" required oninput="validateForm()" />
+    </div>
+    <div>
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" name="password" required oninput="validateForm()" />
+    </div>
+    <div>
+        <label for="confirmPassword">비밀번호 확인</label>
+        <input type="password" id="confirmPassword" required oninput="validateForm()" />
+    </div>
+    <div>
+        <label for="email">이메일</label>
+        <input type="email" id="email" name="email" required oninput="validateForm()" />
+    </div>
+    <div>
+        <button type="submit" id="signupBtn" disabled>회원가입</button>
+    </div>
+</form>
+</body>
+</html>

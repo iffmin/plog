@@ -1,48 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        .login-wrapper{
-            width: 400px;
-            height: 350px;
-            padding: 40px;
-            box-sizing: border-box;
-        }
-        .login-wrapper > h2 {
-            font-size: 30px;
-            color: rgb(212, 179, 31);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
+    <title>로그인</title>
 </head>
 <body>
-    <div class="login-wrapper">
-        <h2>Login</h2>
-        <form method="post" action="서버의url" id="login-form">
-            <input type="text" name="userName" placeholder="아이디">
-            <input type="password" name="userPassword" placeholder="비밀번호">
-            <br>
-            <label for="remember-check">
-                <input type="checkbox" id="remember-check">아아디 저장하기
-            </label>
-            <br>
-            <input type="submit" value="Login">
-        </form>
+<h2>로그인</h2>
+<form th:action="@{/loginProc}" method="post">
+    <div>
+        <label for="username">아이디</label>
+        <input type="text" id="username" name="username" required />
     </div>
-    
+    <div>
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" name="password" required />
+    </div>
+    <div>
+        <button type="submit">로그인</button>
+    </div>
+</form>
 </body>
 </html>
-
-
