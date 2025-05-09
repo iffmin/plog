@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>홈</title>
+    <title>Plog</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; }
 
@@ -97,8 +97,8 @@
         <div th:if="${name != 'anonymousUser'}" style="display: flex; align-items: center; gap: 10px;">
 
 
-            <a th:href="@{/planner}">내 플래너</a>
-            <a th:href="@{/my-posts}">내 블로그</a>
+            <a th:href="@{/my-planner}">내 플래너</a>
+            <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
             <span th:text="${name} + '님'"></span>
             <a th:href="@{'/user/update/' + ${name}}">내 정보</a>
             <a th:href="@{/logout}">로그아웃</a>
