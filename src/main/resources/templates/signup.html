@@ -22,6 +22,21 @@
     </script>
 </head>
 <body>
+<div class="navbar">
+    <div class="left">
+        <a th:href="@{/}" class="navbar-title">Plog</a>
+    </div>
+
+    <div class="right">
+
+        <div>
+            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/signup}">회원가입</a>
+        </div>
+
+
+    </div>
+</div>
 <h2>회원가입</h2>
 <form th:action="@{/signupProc}" method="post">
     <div>
