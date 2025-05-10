@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.List;
+
 @Controller
 public class controller {
 
@@ -92,6 +94,8 @@ public class controller {
         if(s.isAccess(username)){
             String name = SecurityContextHolder.getContext().getAuthentication().getName();
             model.addAttribute("name", name);
+            List<BoardDTO> BOARDLIST = b_s.readAllBoards();
+            model.addAttribute("BOARDLIST", BOARDLIST);
             return "my_blog";
         }
 
