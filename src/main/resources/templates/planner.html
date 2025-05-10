@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>여행 플래너</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #fdfaf2;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left-panel {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #000;
+            box-sizing: border-box;
+        }
+
+        .place-list {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .add-button-wrapper {
+            border-top: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .add-button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: white;
+            border: 2px solid black;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .map-panel {
+            width: 60%;
+            height: 100vh;
+        }
+
+        .right-panel {
+            width: 20%;
+            border-left: 2px solid #000;
+        }
+
+        .place-block {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .place-block img {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        .place-number {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .place-input, .time-input {
+            margin: 5px 5px 5px 0;
+            padding: 3px;
+            width: 100%;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .save-button {
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #333;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="left-panel">
+    <div id="place-list" class="place-list"></div>
+    <div class="add-button-wrapper">
+        <button class="add-button" onclick="openPostcode()">장소추가 ＋</button>
+    </div>
+</div>
+<div class="map-panel">
+    <div id="map"></div>
+</div>
+<div class="right-panel">
+    <h3 style="padding: 20px;">블로그</h3>
+</div>
+
+<!-- 카카오 지도 API -->
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d1f3efee0d30bdde7b35e1ecd17db79f&libraries=services&autoload=false"></script>
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+<script>
+    let map;
+    let markers = [];
+    let placeCounter = 1;
+
+    // 카카오 맵 API 로딩 후 initMap 호출
+    kakao.maps.load(function () {
+        initMap();
+    });
+
+    function initMap() {
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+            level: 5 // 줌 레벨
+        };
+        map = new kakao.maps.Map(mapContainer, mapOption);
+    }
+
+    // 장소 추가하기
+    function openPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                const address = data.address;
+                addPlace(address);
+            }
+        }).open();
+    }
+
+    function addPlace(address) {
+        const geocoder = new kakao.maps.services.Geocoder();
+        geocoder.addressSearch(address, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                const marker = new kakao.maps.Marker({
+                    map: map,
+                    position: coords
+                });
+
+                const label = new kakao.maps.CustomOverlay({
+                    map: map,
+                    position: coords,
+                    content: `<div style="color: black; background: white; border: 1px solid black; font-size: 12px; padding: 2px;">${placeCounter}</div>`,
+                    yAnchor: 1
+                });
+
+                markers.push(marker);
+                map.setCenter(coords);
+                renderPlaceBlock(address);
+            }
+        });
+    }
+
+    // 장소 블록을 왼쪽 패널에 추가
+    function renderPlaceBlock(address) {
+        const container = document.getElementById('place-list');
+        const block = document.createElement('div');
+        block.className = 'place-block';
+
+        const blockId = `block-${placeCounter}`;
+
+        block.innerHTML = `
+            <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="marker">
+            <div class="place-number">${placeCounter}</div>
+            <input class="place-input" type="text" value="${address}" readonly />
+            <input class="place-input" id="${blockId}-name" type="text" placeholder="장소 이름 입력" />
+            <input class="time-input" id="${blockId}-time" type="text" placeholder="소요시간 (예: 30분)" />
+            <button class="save-button" onclick="savePlace('${address}', '${blockId}-name', '${blockId}-time')">저장</button>
+        `;
+
+        container.appendChild(block);
+        placeCounter++;
+    }
+
+    // 장소 저장하기
+    function savePlace(address, nameId, timeId) {
+        const name = document.getElementById(nameId).value;
+        const time = document.getElementById(timeId).value;
+
+        if (!name || !time) {
+            alert("장소 이름과 소요시간을 모두 입력해주세요.");
+            return;
+        }
+
+        const placeData = {
+            name: name,
+            address: address,
+            time: time
+        };
+
+        fetch('/Place/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(placeData)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('장소가 저장되었습니다.');
+            } else {
+                alert('저장 실패');
+            }
+        })
+        .catch(error => {
+            console.error('에러 발생:', error);
+            alert('서버 오류');
+        });
+    }
+</script>
+</body>
+</html>

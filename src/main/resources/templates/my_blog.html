@@ -70,5 +70,21 @@
   </a>
 </div>
 
+<h1>내 블로그</h1>
+<hr>
+<div th:if="${#lists.isEmpty(BOARDLIST)}">
+  <p>게시글이 없습니다.</p>
+</div>
+
+<div th:if="${!#lists.isEmpty(BOARDLIST)}">
+  <ul>
+    <li th:each="board : ${BOARDLIST}">
+      <a th:href="@{'/board/read/' + ${board.id}}"
+         th:text="${board.title}">게시글 제목</a>
+    </li>
+  </ul>
+</div>
+
+
 </body>
 </html>
