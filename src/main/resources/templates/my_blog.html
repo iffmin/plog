@@ -2,89 +2,135 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>홈</title>
+  <title>PLOG</title>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
-
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
     .navbar {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 20px;
-        background-color: #f5f5f5;
-        align-items: center;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #f5f5f5;
+      align-items: center;
     }
-
     .left, .right {
-        display: flex;
-        gap: 10px;
-        align-items: center;
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
-
     a {
-        text-decoration: none;
-        color: #333;
-        padding: 6px 12px;
-        border-radius: 4px;
+      text-decoration: none;
+      color: #333;
+      padding: 6px 12px;
+      border-radius: 4px;
     }
-
     a:hover {
-        background-color: #ddd;
+      background-color: #ddd;
     }
-
-    .menu-button:hover {
-        background-color: #ddd;
-    }
-
     .navbar-title {
-        font-size: 32px;
-        font-weight: bold;
-        color: green;
-        font-family: 'Courier New', Courier, monospace;
-        letter-spacing: 2px;
+      font-size: 32px;
+      font-weight: bold;
+      color: green;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+    }
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+    }
+    .map-container {
+      flex: 1;
+      min-width: 400px;
+      height: 500px;
+      border: 1px solid #ccc;
+    }
+    .blog-container {
+      flex: 1;
+      max-height: 500px;
+      overflow-y: scroll;
+    }
+    .blog-container ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .blog-container li {
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .blog-container a {
+      font-size: 18px;
+      color: #2a5d9f;
+    }
+    .write-btn {
+      position: fixed;
+      top: 80px; /* 위로 고정, 필요에 맞게 조정 */
+      right: 20px;
+      background-color: green;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 16px;
     }
   </style>
+
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=6d8b4ee9a457e829b468bc1b84b42e85"></script>
 </head>
 <body>
 <div class="navbar">
   <div class="left">
     <a th:href="@{/}" class="navbar-title">Plog</a>
   </div>
-
   <div class="right">
-
     <div style="display: flex; align-items: center; gap: 10px;">
       <a th:href="@{/my-planner}">내 플래너</a>
       <a th:href="@{'/user/my_blog' + ${name}}">내 블로그</a>
-      <span th:text="${name} + '님'"></span>
-      <a th:href="@{'/user/update/' + ${name}}">내 정보</a>
+      <a th:href="@{'/user/update/' + ${name}}" th:text="${name} + '님'"></a>
       <a th:href="@{/logout}">로그아웃</a>
     </div>
   </div>
 </div>
 
-<div style="padding: 20px;">
-  <a th:href="@{/user/my_blog/{username}/write(username=${name})}"
-     style="background-color: green; color: white; padding: 10px 20px;
-            text-decoration: none; border-radius: 6px; font-size: 16px;">
-    블로그 작성
-  </a>
+<h2 style="text-align: center; padding-top: 20px;">내 블로그</h2>
+
+
+<a th:href="@{/user/my_blog/{username}/write(username=${name})}" class="write-btn">
+  블로그 작성
+</a>
+
+<div class="container">
+  <div class="map-container" id="map" style="width:500px;height:400px;"></div>
+  <div class="blog-container">
+    <hr>
+    <div th:if="${#lists.isEmpty(BOARDLIST)}">
+      <p>게시글이 없습니다.</p>
+    </div>
+    <div th:if="${!#lists.isEmpty(BOARDLIST)}">
+      <ul>
+        <li th:each="board : ${BOARDLIST}">
+          <a th:href="@{'/board/read/' + ${board.id}}"
+             th:text="${board.title}">게시글 제목</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
 
-<h1>내 블로그</h1>
-<hr>
-<div th:if="${#lists.isEmpty(BOARDLIST)}">
-  <p>게시글이 없습니다.</p>
-</div>
-
-<div th:if="${!#lists.isEmpty(BOARDLIST)}">
-  <ul>
-    <li th:each="board : ${BOARDLIST}">
-      <a th:href="@{'/board/read/' + ${board.id}}"
-         th:text="${board.title}">게시글 제목</a>
-    </li>
-  </ul>
-</div>
-
+<script>
+  kakao.maps.load(function () {
+    var container = document.getElementById('map');
+    var options = {
+      center: new kakao.maps.LatLng(33.450701, 126.570667),
+      level: 3
+    };
+    var map = new kakao.maps.Map(container, options);
+  });
+</script>
 
 </body>
 </html>

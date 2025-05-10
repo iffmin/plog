@@ -99,8 +99,7 @@
 
             <a th:href="@{/my-planner}">내 플래너</a>
             <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
-            <span th:text="${name} + '님'"></span>
-            <a th:href="@{'/user/update/' + ${name}}">내 정보</a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${name} + '님'"></a>
             <a th:href="@{/logout}">로그아웃</a>
         </div>
     </div>
