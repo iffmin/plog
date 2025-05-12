@@ -2,158 +2,149 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>PLOG</title>
+    <title>Plog</title>
     <style>
-        body {
-          margin: 0;
-          font-family: Arial, sans-serif;
-        }
+        body { margin: 0; font-family: Arial, sans-serif; }
 
         .navbar {
-          display: flex;
-          justify-content: space-between;
-          padding: 10px 20px;
-          background-color: #f5f5f5;
-          align-items: center;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            align-items: center;
         }
 
         .left, .right {
-          display: flex;
-          gap: 10px;
-          align-items: center;
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         a {
-          text-decoration: none;
-          color: #333;
-          padding: 6px 12px;
-          border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 4px;
         }
 
         a:hover {
-          background-color: #ddd;
+            background-color: #ddd;
         }
 
         .navbar-title {
-          font-size: 32px;
-          font-weight: bold;
-          color: green;
-          font-family: 'Courier New', Courier, monospace;
-          letter-spacing: 2px;
+            font-size: 32px;
+            font-weight: bold;
+            color: green;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 2px;
         }
 
         .container {
-          display: flex;
-          padding: 20px;
-          gap: 20px;
+            display: flex;
+            height: calc(100vh - 60px);
         }
 
-        .map-container {
-          flex: 1;
-          min-width: 400px;
-          height: 500px;
-          background-color: #e0e0e0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          color: #555;
-          border: 1px solid #ccc;
-          border-radius: 8px;
+        .map-section {
+            flex: 1;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #555;
         }
 
-        .blog-container {
-          flex: 1;
-          max-height: 500px;
-          overflow-y: scroll;
+        .form-section {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
         }
 
-        .blog-container ul {
-          list-style: none;
-          padding-left: 0;
+        h2 {
+            margin-top: 0;
         }
 
-        .blog-container li {
-          margin-bottom: 15px;
-          border: 1px solid #ddd;
-          padding: 15px;
-          border-radius: 8px;
-          background-color: #fafafa;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        .blog-container a {
-          font-size: 20px;
-          font-weight: bold;
-          color: #2a5d9f;
-          text-decoration: none;
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
 
-        .blog-content-preview {
-          margin-top: 8px;
-          font-size: 14px;
-          color: #555;
+        button {
+            padding: 10px 16px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
-        .write-btn {
-          position: fixed;
-          top: 80px;
-          right: 20px;
-          background-color: green;
-          color: white;
-          padding: 10px 20px;
-          text-decoration: none;
-          border-radius: 6px;
-          font-size: 16px;
+        button:hover {
+            background-color: #218838;
         }
 
-        .search-bar {
-          margin: 20px auto;
-          max-width: 800px;
-          display: flex;
-          gap: 10px;
-          justify-content: center;
-        }
-
-        .search-bar input {
-          padding: 8px;
-          width: 300px;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          font-size: 14px;
-        }
-
-        .search-bar button {
-          padding: 8px 14px;
-          background-color: #007bff;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .search-bar button:hover {
-          background-color: #0056b3;
+        .location-entry {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
         }
     </style>
-    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=6d8b4ee9a457e829b468bc1b84b42e85&libraries=services"></script>
+
+    <!-- 카카오 주소 API -->
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
     <script>
-        window.onload = function() {
-            var container = document.getElementsByClassName('map-container')[0];
-            var options = {
-                center: new kakao.maps.LatLng(37.5665, 126.9780),
-                level: 3
-            };
-            var map = new kakao.maps.Map(container, options);
-        };
+        let locationIndex = 0;
+
+        function openPostcode() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    addLocationEntry(data.address); // 주소 받아서 장소 이름 input에 넣기
+                }
+            }).open();
+        }
+
+        function addLocationEntry(address) {
+            const container = document.getElementById('location-entries');
+
+            const entryHTML = `
+                <div class="location-entry">
+                    <div class="form-group">
+                        <label>장소 이름</label>
+                        <input type="text" name="locations[${locationIndex}].locationName" value="${address}" required/>
+                    </div>
+                    <div class="form-group">
+                        <label>내용</label>
+                        <textarea name="locations[${locationIndex}].content" rows="4" placeholder="이 장소에 대한 내용을 적어보세요." required></textarea>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', entryHTML);
+            locationIndex++;
+        }
     </script>
 </head>
 <body>
+
 <div class="navbar">
     <div class="left">
         <a th:href="@{/}" class="navbar-title">Plog</a>
     </div>
+
     <div class="right">
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div th:if="${name == 'anonymousUser'}">
+            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/signup}">회원가입</a>
+        </div>
+        <div th:if="${name != 'anonymousUser'}" style="display: flex; align-items: center; gap: 10px;">
             <a th:href="@{/my-planner}">내 플래너</a>
             <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
             <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
@@ -162,37 +153,26 @@
     </div>
 </div>
 
-<h2 style="text-align: center; padding-top: 20px;">모든 블로그</h2>
-
-<div class="search-bar">
-    <input type="text" placeholder="장소를 검색하세요 (검색 기능은 추후 구현됩니다)">
-    <button type="button">검색</button>
-</div>
-
-<a th:href="@{/user/my_blog/{username}/write(username=${name})}" class="write-btn">
-    블로그 작성
-</a>
-
 <div class="container">
-    <div class="map-container">
-        지도 영역
+    <div class="map-section">
+        <button type="button" onclick="openPostcode()">장소 추가</button>
     </div>
 
-    <div class="blog-container">
-        <div th:if="${#lists.isEmpty(BOARDLIST)}">
-            <p>게시글이 없습니다.</p>
-        </div>
-        <div th:if="${!#lists.isEmpty(BOARDLIST)}">
-            <ul>
-                <li th:each="board : ${BOARDLIST}">
-                    <a th:href="@{'/board/' + ${board.id}}" th:text="${board.title}">게시글 제목</a>
-                    <p class="blog-content-preview" th:text="${#strings.abbreviate(board.content, 100)}">
-                        본문 미리보기
-                    </p>
-                </li>
-            </ul>
-        </div>
+    <div class="form-section">
+        <form th:action="@{/user/my_blog/{username}/write(username=${name})}" method="post">
+            <h2>여행 블로그 작성</h2>
+
+            <div class="form-group">
+                <label>블로그 제목</label>
+                <input type="text" name="title" placeholder="여행의 제목을 입력하세요" required/>
+            </div>
+
+            <div id="location-entries"></div>
+
+            <button type="submit" style="margin-left: 10px;">저장</button>
+        </form>
     </div>
 </div>
+
 </body>
 </html>
