@@ -7,13 +7,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public class CustomUserDetails implements UserDetails {
 
     private entity userdata;
 
     public CustomUserDetails(entity userdata){
+
         this.userdata = userdata;
     }
 
@@ -32,6 +32,13 @@ public class CustomUserDetails implements UserDetails {
         return userdata.getUsername();
     }
 
+    public Long getId(){
+        return userdata.getId();
+    }
+
+    public String getName(){
+        return userdata.getName();
+    }
     @Override
     public boolean isAccountNonExpired() {
         return true;

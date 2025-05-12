@@ -89,8 +89,8 @@
   <div class="right">
     <div style="display: flex; align-items: center; gap: 10px;">
       <a th:href="@{/my-planner}">내 플래너</a>
-      <a th:href="@{'/user/my_blog' + ${name}}">내 블로그</a>
-      <a th:href="@{'/user/update/' + ${name}}" th:text="${name} + '님'"></a>
+      <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
+      <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
       <a th:href="@{/logout}">로그아웃</a>
     </div>
   </div>
@@ -113,7 +113,7 @@
     <div th:if="${!#lists.isEmpty(BOARDLIST)}">
       <ul>
         <li th:each="board : ${BOARDLIST}">
-          <a th:href="@{'/board/read/' + ${board.id}}"
+          <a th:href="@{'/board/' + ${board.id}}"
              th:text="${board.title}">게시글 제목</a>
         </li>
       </ul>

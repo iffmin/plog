@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PLOG</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            align-items: center;
+        }
+
+        .left, .right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+        a:hover {
+            background-color: #ddd;
+        }
+
+        .navbar-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: green;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .content-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .blog-wrapper {
+            flex: 2;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-wrapper {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            height: 500px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .blog-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .blog-writer {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        .location-name {
+            font-size: 14px;
+            color: #888;
+            margin-top: 25px;
+            margin-bottom: 5px;
+        }
+
+        .location-content {
+            font-size: 18px;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .action-buttons a,
+        .action-buttons button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .action-buttons a {
+            background-color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .action-buttons button {
+            background-color: #f44336;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="left">
+        <a th:href="@{/}" class="navbar-title">Plog</a>
+    </div>
+
+    <div class="right">
+        <div th:if="${name == 'anonymousUser'}">
+            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/signup}">회원가입</a>
+        </div>
+
+        <div th:if="${name != 'anonymousUser'}">
+            <a th:href="@{/my-planner}">내 플래너</a>
+            <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
+            <a th:href="@{/logout}">로그아웃</a>
+        </div>
+    </div>
+</div>
+
+<div class="content-container">
+    <div class="blog-wrapper">
+        <div class="blog-title" th:text="${title}">블로그 제목</div>
+        <div class="blog-writer" th:text="'작성자: ' + ${author}">작성자</div>
+        <hr>
+
+        <div th:each="location : ${locations}">
+            <div class="location-name" th:text="'📍 ' + ${location.locationName}">장소명</div>
+            <div class="location-content" th:text="${location.content}">본문 내용</div>
+        </div>
+
+
+
+
+        <div class="action-buttons" th:if="${name == authorID or role == 'ROLE_ADMIN'}">
+            <a th:href="@{'/board/' + ${boardid} + '/update'}">수정</a>
+
+            <form th:action="@{'/board/' + ${boardid} + '/delete'}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                <button type="submit">삭제</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="map-wrapper">
+        <div id="map"></div>
+    </div>
+</div>
+
+</body>
+</html>

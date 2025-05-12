@@ -1,11 +1,12 @@
 package com.plog.PLOG.service;
 
+import com.plog.PLOG.dto.CustomUserDetails;
 import com.plog.PLOG.dto.dto;
 import com.plog.PLOG.entity.UserRoleType;
 import com.plog.PLOG.entity.entity;
 import com.plog.PLOG.repository.repository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,12 +28,13 @@ public class service {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
+
     public void toEntity(dto d){
 
-        boolean isUser = repo.existsByUsername(d.getUsername());
-        if(isUser){
+        if(repo.existsByUsername(d.getUsername())){
             return;
         }
+
 
         entity data = new entity();
 
@@ -44,6 +46,7 @@ public class service {
 
         data.setRole(UserRoleType.USER);
         repo.save(data);
+
     }
 
     public Boolean isAccess(String username){
@@ -123,6 +126,28 @@ public class service {
     @Transactional
     public void deleteOneUser(String username){
         repo.deleteByUsername(username);
+    }
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getId();
+        }
+
+        return null;
+    }
+
+    public String getCurrentName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getName();
+        }
+
+        return null;
     }
 
 

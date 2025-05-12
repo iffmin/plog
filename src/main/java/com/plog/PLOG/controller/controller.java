@@ -1,7 +1,12 @@
 package com.plog.PLOG.controller;
 
 import com.plog.PLOG.dto.BoardDTO;
+import com.plog.PLOG.dto.CustomUserDetails;
+import com.plog.PLOG.dto.LocationDTO;
 import com.plog.PLOG.dto.dto;
+import com.plog.PLOG.entity.BoardEntity;
+import com.plog.PLOG.repository.BoardRepository;
+import com.plog.PLOG.repository.repository;
 import com.plog.PLOG.service.BoardService;
 import com.plog.PLOG.service.service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -22,17 +28,21 @@ public class controller {
     @Autowired
     public service s;
     @Autowired
+    public repository u_r;
+    @Autowired
     public BoardService b_s;
-
+    @Autowired
+    private BoardRepository b_r;
 
     @GetMapping("/")
     public String home(Model model) {
 
         String name = SecurityContextHolder.getContext().getAuthentication().getName();
-
-
+        String nickname = s.getCurrentName();
         model.addAttribute("name", name);
-
+        model.addAttribute("nickname", nickname);
+        List<BoardDTO> BOARDLIST = b_s.readallBoards();
+        model.addAttribute("BOARDLIST", BOARDLIST);
         return "home";
     }
 
@@ -61,9 +71,9 @@ public class controller {
     @PostMapping("/signupProc")
     public String signupproc(dto d){
 
-        s.toEntity(d);
+            s.toEntity(d);
+            return "redirect:/login";
 
-        return "redirect:/login";
     }
 
     @GetMapping("/user/update/{username}")
@@ -93,8 +103,11 @@ public class controller {
 
         if(s.isAccess(username)){
             String name = SecurityContextHolder.getContext().getAuthentication().getName();
+            Long userId = s.getCurrentUserId();
+            String nickname = s.getCurrentName();
             model.addAttribute("name", name);
-            List<BoardDTO> BOARDLIST = b_s.readAllBoards();
+            model.addAttribute("nickname", nickname);
+            List<BoardDTO> BOARDLIST = b_s.readOneALLBoard(userId);
             model.addAttribute("BOARDLIST", BOARDLIST);
             return "my_blog";
         }
@@ -107,6 +120,8 @@ public class controller {
         if(s.isAccess(username)){
             String name = SecurityContextHolder.getContext().getAuthentication().getName();
             model.addAttribute("name", name);
+            String nickname = s.getCurrentName();
+            model.addAttribute("nickname", nickname);
             return "my_blog_write";
         }
 
@@ -114,13 +129,79 @@ public class controller {
     }
 
     @PostMapping("/user/my_blog/{username}/write")
-    public String writeBlogProc(@PathVariable("username") String username, BoardDTO boardDTO){
-        if(s.isAccess(username)){
-            b_s.createOneBoard(boardDTO);
-            return "redirect:/user/my_blog/{username}";
+    public String writeBlogProc(@PathVariable("username") String username, @ModelAttribute BoardDTO boardDTO) {
+
+        if (s.isAccess(username)) {
+            b_s.createOneBoard(boardDTO, boardDTO.getLocations());
+            return "redirect:/user/my_blog/" + username;
         }
+
         return "redirect:/";
     }
 
+    @GetMapping("/board/{boardid}")
+    public String readboard(@PathVariable("boardid") Long boardid, Model model){
+        List<LocationDTO> locations = b_s.readBoard(boardid);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String name = auth.getName();
+        String role = auth.getAuthorities().iterator().next().getAuthority();
+        BoardEntity board = b_r.findById(boardid).orElseThrow();
+        String title = board.getTitle();
+        String author = board.getEntity().getName();
+        String authorID = board.getEntity().getUsername();
+
+
+        model.addAttribute("name", name);
+        model.addAttribute("locations", locations);
+        model.addAttribute("title", title);
+        model.addAttribute("author", author);
+        String nickname = s.getCurrentName();
+        model.addAttribute("nickname", nickname);
+
+        model.addAttribute("authorID", authorID);
+        model.addAttribute("role", role);
+
+
+        return "read_board";
+    }
+
+    @GetMapping("/board/{boardid}/update")
+    public String boardupdate(@PathVariable("boardid") Long boardid, Model model){
+        String n = b_r.findById(boardid).orElseThrow().getEntity().getName();
+        if(s.isAccess(n)){
+            List<LocationDTO> locations = b_s.readBoard(boardid);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String name = auth.getName();
+            String role = auth.getAuthorities().iterator().next().getAuthority();
+            BoardEntity board = b_r.findById(boardid).orElseThrow();
+            String title = board.getTitle();
+            String author = board.getEntity().getName();
+            String authorID = board.getEntity().getUsername();
+
+
+            model.addAttribute("name", name);
+            model.addAttribute("locations", locations);
+            model.addAttribute("title", title);
+            model.addAttribute("author", author);
+            String nickname = s.getCurrentName();
+            model.addAttribute("nickname", nickname);
+
+            model.addAttribute("authorID", authorID);
+            model.addAttribute("role", role);
+            return "update_board";
+        }
+        else{
+            return "redirect:/";
+        }
+    }
+
+    @PostMapping("/board/{boardid}/update")
+    public String boardupdateProc(@PathVariable("boardid") Long boardid, BoardDTO dtos){
+        if(b_s.isAccess(boardid)){
+            b_s.updateBoard(boardid, dtos.getLocations());
+            return "redirect:/board/{boardid}";
+        }
+        return "redirect:/";
+    }
 
 }

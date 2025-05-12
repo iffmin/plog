@@ -31,10 +31,6 @@
             background-color: #ddd;
         }
 
-        .menu-button:hover {
-            background-color: #ddd;
-        }
-
         .navbar-title {
             font-size: 32px;
             font-weight: bold;
@@ -43,73 +39,123 @@
             letter-spacing: 2px;
         }
 
-        .home-hero {
-            position: relative;
-            background-image: url('https://img.freepik.com/premium-vector/map-with-destination-location-point_34645-957.jpg?w=2000');
-            background-size: cover;
-            background-position: center;
-            height: 500px;
+        .search-container {
             display: flex;
-            align-items: center;
             justify-content: center;
-            flex-direction: column;
-            color: black;
-            text-align: center;
+            gap: 10px;
+            margin: 20px 0;
         }
 
-        .home-hero h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        .search-container input {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 200px;
         }
 
-        .home-hero .btn {
-            background-color: rgba(0, 128, 0, 0.8);
+        .search-container button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            background-color: #4CAF50;
             color: white;
-            padding: 12px 24px;
-            margin: 35px 12px 0 12px;
-            font-size: 18px;
             border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
         }
 
-        .home-hero .btn:hover {
-            background-color: rgba(0, 100, 0, 0.9);
+        .search-container button:hover {
+            background-color: #45a049;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            padding: 0 20px 40px;
+        }
+
+        .blog-list {
+            width: 600px;
+        }
+
+        .blog-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .blog-title {
+            font-size: 22px;
+            color: #2a5d9f;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .blog-location {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .blog-content-preview {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
 <body>
+
 <div class="navbar">
     <div class="left">
         <a th:href="@{/}" class="navbar-title">Plog</a>
     </div>
 
     <div class="right">
-        <!-- 비로그인 상태 -->
         <div th:if="${name == 'anonymousUser'}">
             <a th:href="@{/login}">로그인</a>
             <a th:href="@{/signup}">회원가입</a>
         </div>
-
-        <!-- 로그인 상태 -->
         <div th:if="${name != 'anonymousUser'}" style="display: flex; align-items: center; gap: 10px;">
-
-
             <a th:href="@{/my-planner}">내 플래너</a>
             <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
-            <a th:href="@{'/user/update/' + ${name}}" th:text="${name} + '님'"></a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
             <a th:href="@{/logout}">로그아웃</a>
         </div>
     </div>
 </div>
 
-<div class="home-hero">
-    <h1>Plog에 오신 걸 환영합니다</h1>
-    <a href="/explore-map" class="btn">지도로 탐색하기</a>
-    <a th:if="${name == 'anonymousUser'}" href="/write" class="btn">글 쓰러 가기</a>
+<!-- 검색창 -->
+<div class="search-container">
+    <input type="text" placeholder="검색..." id="searchInput">
+    <button onclick="searchPosts()">검색</button>
 </div>
+
+<!-- 블로그 리스트 -->
+<div class="main-container">
+    <div class="blog-list">
+        <div th:each="board : ${BOARDLIST}" class="blog-card">
+            <a th:href="@{'/board/' + ${board.id}}" class="blog-title" th:text="${board.title}">블로그 제목</a>
+
+            <div th:each="loc : ${board.locations}">
+                <div class="blog-location" th:text="${loc.locationName}">장소명</div>
+                <div class="blog-content-preview" th:text="${loc.content}">내용 미리보기</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchPosts() {
+        const searchTerm = document.getElementById('searchInput').value;
+        if (searchTerm) {
+            window.location.href = "/search?query=" + encodeURIComponent(searchTerm);
+        }
+    }
+</script>
 
 </body>
 </html>

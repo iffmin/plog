@@ -1,26 +1,33 @@
 package com.plog.PLOG.service;
 
+
 import com.plog.PLOG.dto.BoardDTO;
+import com.plog.PLOG.dto.LocationDTO;
 import com.plog.PLOG.entity.BoardEntity;
+import com.plog.PLOG.entity.LocationEntity;
 import com.plog.PLOG.entity.entity;
 import com.plog.PLOG.repository.BoardRepository;
+import com.plog.PLOG.repository.LocationRepository;
 import com.plog.PLOG.repository.repository;
-import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class BoardService {
+
     private final BoardRepository boardRepository;
     private final repository userRepository;
-
-    public BoardService(BoardRepository boardRepository, repository userRepository) {
+    private final LocationRepository locationRepository;
+    public BoardService(BoardRepository boardRepository, repository userRepository, LocationRepository locationRepository) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
+        this.locationRepository = locationRepository;
     }
+
 
     public Boolean isAccess(Long id) {
 
@@ -40,44 +47,55 @@ public class BoardService {
     }
 
     @Transactional
-    public void createOneBoard(BoardDTO dto){
+    public void createOneBoard(BoardDTO b_dto, List<LocationDTO> l_dto) {
         BoardEntity board = new BoardEntity();
-        board.setTitle(dto.getTitle());
-        board.setContent(dto.getContent());
 
+        board.setTitle(b_dto.getTitle());
         boardRepository.save(board);
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        entity user = userRepository.findByUsername(username).orElseThrow();
+        entity user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
         user.addBoardEntity(board);
         userRepository.save(user);
+
+        for (LocationDTO dto : l_dto) {
+            LocationEntity location = new LocationEntity();
+            location.setLocationName(dto.getLocationName());
+            location.setContent(dto.getContent());
+            board.addlocationEntity(location);
+            locationRepository.save(location);
+
+        }
     }
 
     @Transactional
-    public BoardDTO readOneBoard(Long id){
-        BoardEntity boardEntity = boardRepository.findById(id).orElseThrow();
+    public List<BoardDTO> readOneALLBoard(Long id){
 
-        BoardDTO dto = new BoardDTO();
-        dto.setId(boardEntity.getId());
-        dto.setTitle(boardEntity.getTitle());
-        dto.setContent(boardEntity.getContent());
-
-        return dto;
-    }
-
-    @Transactional
-    public List<BoardDTO> readAllBoards() {
-
-        List<BoardEntity> list = boardRepository.findAll();
-
+        List<BoardEntity> list = boardRepository.findByEntityId(id);
         List<BoardDTO> dtos = new ArrayList<>();
+
         for (BoardEntity boardEntity : list) {
             BoardDTO dto = new BoardDTO();
             dto.setId(boardEntity.getId());
             dto.setTitle(boardEntity.getTitle());
-            dto.setContent(boardEntity.getContent());
+
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+    @Transactional
+    public List<LocationDTO> readBoard(Long id){
+
+        List<LocationEntity> list = locationRepository.findByBoardEntityId(id);
+        List<LocationDTO> dtos = new ArrayList<>();
+
+        for (LocationEntity locationEntity : list) {
+            LocationDTO dto = new LocationDTO();
+            dto.setId(locationEntity.getId());
+            dto.setLocationName(locationEntity.getLocationName());
+            dto.setContent(locationEntity.getContent());
 
             dtos.add(dto);
         }
@@ -86,23 +104,57 @@ public class BoardService {
     }
 
     @Transactional
-    public void updateOneBoard(Long id, BoardDTO dto) {
+    public List<LocationDTO> updateBoard(Long id, List<LocationDTO> dtos){
+        BoardEntity board = boardRepository.findById(id).orElseThrow();
 
-        BoardEntity boardEntity = boardRepository.findById(id).orElseThrow();
+        List<LocationEntity> existingLocations = locationRepository.findByBoardEntityId(id);
 
+        int existingSize = existingLocations.size();
 
-        boardEntity.setTitle(dto.getTitle());
-        boardEntity.setContent(dto.getContent());
+        for (int i = 0; i < dtos.size(); i++) {
+            LocationDTO dto = dtos.get(i);
 
-        boardRepository.save(boardEntity);
+            if (i < existingSize) {
+                LocationEntity entity = existingLocations.get(i);
+                entity.setLocationName(dto.getLocationName());
+                entity.setContent(dto.getContent());
+            } else {
+                LocationEntity newEntity = new LocationEntity();
+                newEntity.setLocationName(dto.getLocationName());
+                newEntity.setContent(dto.getContent());
+                newEntity.setBoardEntity(board);
+                locationRepository.save(newEntity);
+            }
+        }
+
+        return dtos;
     }
 
     @Transactional
-    public void deleteOneBoard(Long id) {
+    public List<BoardDTO> readallBoards() {
+        List<BoardEntity> entities = boardRepository.findAll();
 
-        boardRepository.deleteById(id);
+        List<BoardDTO> result = new ArrayList<>();
+        for (BoardEntity board : entities) {
+            BoardDTO boardDTO = new BoardDTO();
+            boardDTO.setId(board.getId());
+            boardDTO.setTitle(board.getTitle());
+
+            List<LocationDTO> locationDTOList = new ArrayList<>();
+            for (LocationEntity location : board.getLocationEntityList()) {
+                LocationDTO locationDTO = new LocationDTO();
+                locationDTO.setLocationName(location.getLocationName());
+                locationDTO.setContent(location.getContent());
+                locationDTOList.add(locationDTO);
+            }
+
+            boardDTO.setLocations(locationDTOList);
+            result.add(boardDTO);
+        }
+
+        return result;
     }
-
-
 }
+
+
 

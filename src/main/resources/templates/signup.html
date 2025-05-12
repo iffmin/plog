@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>회원가입</title>
+    <title>PLOG</title>
     <script>
         function validateForm() {
             const name = document.getElementById("name");
@@ -85,7 +85,7 @@
 <body>
 
 <form th:action="@{/signupProc}" method="post">
-    <h1><a th: href="@{/}" style="text-decoration: none; color: green;">PLOG</a></h1>
+    <h1><a th:href="@{/}" style="text-decoration: none; color: green;">PLOG</a></h1>
     <h2>회원가입</h2>
     <div>
         <label for="name">이름</label>
