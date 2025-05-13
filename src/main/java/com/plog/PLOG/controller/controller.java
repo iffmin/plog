@@ -81,7 +81,9 @@ public class controller {
 
         if (s.isAccess(username)) {
             dto dto = s.readOneUser(username);
+            String nickname = s.getCurrentName();
             model.addAttribute("USER", dto);
+            model.addAttribute("nickname", nickname);
             return "update";
         }
         return "redirect:/login";
@@ -167,8 +169,8 @@ public class controller {
 
     @GetMapping("/board/{boardid}/update")
     public String boardupdate(@PathVariable("boardid") Long boardid, Model model){
-        String n = b_r.findById(boardid).orElseThrow().getEntity().getName();
-        if(s.isAccess(n)){
+
+        if(b_s.isAccess(boardid)){
             List<LocationDTO> locations = b_s.readBoard(boardid);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String name = auth.getName();
