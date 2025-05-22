@@ -69,10 +69,21 @@
             display: flex;
             justify-content: center;
             padding: 0 20px 40px;
+            gap: 20px;
+        }
+
+        #map {
+            width: 600px;
+            height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
         .blog-list {
             width: 600px;
+            height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
         }
 
         .blog-card {
@@ -134,8 +145,12 @@
     <button onclick="searchPosts()">검색</button>
 </div>
 
-<!-- 블로그 리스트 -->
+<!-- 지도 + 블로그 리스트 -->
 <div class="main-container">
+    <!-- 지도 -->
+    <div id="map"></div>
+
+    <!-- 블로그 목록 -->
     <div class="blog-list">
         <div th:each="board : ${BOARDLIST}" class="blog-card">
             <a th:href="@{'/board/' + ${board.id}}" class="blog-title" th:text="${board.title}">블로그 제목</a>
@@ -148,7 +163,24 @@
     </div>
 </div>
 
+<!-- ✅ 카카오맵 SDK -->
+<script
+        type="text/javascript"
+        th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false'}">
+</script>
+
+
 <script>
+    // SDK 로드 후 실행
+    kakao.maps.load(function () {
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(35.142785, 126.934717),
+            level: 3
+        };
+        var map = new kakao.maps.Map(container, options);
+    });
+
     function searchPosts() {
         const searchTerm = document.getElementById('searchInput').value;
         if (searchTerm) {

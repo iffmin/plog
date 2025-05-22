@@ -10,6 +10,7 @@ import com.plog.PLOG.repository.repository;
 import com.plog.PLOG.service.BoardService;
 import com.plog.PLOG.service.service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +35,9 @@ public class controller {
     @Autowired
     private BoardRepository b_r;
 
+    @Value("${kakao.api.key}")
+    private String kakaoApiKey;
+
     @GetMapping("/")
     public String home(Model model) {
 
@@ -43,6 +47,7 @@ public class controller {
         model.addAttribute("nickname", nickname);
         List<BoardDTO> BOARDLIST = b_s.readallBoards();
         model.addAttribute("BOARDLIST", BOARDLIST);
+        model.addAttribute("kakaoApiKey", kakaoApiKey);
         return "home";
     }
 
