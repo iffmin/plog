@@ -9,6 +9,7 @@ import com.plog.PLOG.entity.entity;
 import com.plog.PLOG.repository.BoardRepository;
 import com.plog.PLOG.repository.LocationRepository;
 import com.plog.PLOG.repository.repository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,7 +133,8 @@ public class BoardService {
 
     @Transactional
     public List<BoardDTO> readallBoards() {
-        List<BoardEntity> entities = boardRepository.findAll();
+
+        List<BoardEntity> entities = boardRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 
         List<BoardDTO> result = new ArrayList<>();
         for (BoardEntity board : entities) {
@@ -154,6 +156,10 @@ public class BoardService {
 
         return result;
     }
+
+
+
+
 }
 
 
