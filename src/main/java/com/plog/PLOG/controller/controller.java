@@ -10,6 +10,7 @@ import com.plog.PLOG.repository.repository;
 import com.plog.PLOG.service.BoardService;
 import com.plog.PLOG.service.service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +35,9 @@ public class controller {
     @Autowired
     private BoardRepository b_r;
 
+    @Value("${kakao.api.key}")
+    private String kakaoApiKey;
+
     @GetMapping("/")
     public String home(Model model) {
 
@@ -43,6 +47,7 @@ public class controller {
         model.addAttribute("nickname", nickname);
         List<BoardDTO> BOARDLIST = b_s.readallBoards();
         model.addAttribute("BOARDLIST", BOARDLIST);
+        model.addAttribute("kakaoApiKey", kakaoApiKey);
         return "home";
     }
 
@@ -81,7 +86,9 @@ public class controller {
 
         if (s.isAccess(username)) {
             dto dto = s.readOneUser(username);
+            String nickname = s.getCurrentName();
             model.addAttribute("USER", dto);
+            model.addAttribute("nickname", nickname);
             return "update";
         }
         return "redirect:/login";
@@ -167,8 +174,8 @@ public class controller {
 
     @GetMapping("/board/{boardid}/update")
     public String boardupdate(@PathVariable("boardid") Long boardid, Model model){
-        String n = b_r.findById(boardid).orElseThrow().getEntity().getName();
-        if(s.isAccess(n)){
+
+        if(b_s.isAccess(boardid)){
             List<LocationDTO> locations = b_s.readBoard(boardid);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String name = auth.getName();
