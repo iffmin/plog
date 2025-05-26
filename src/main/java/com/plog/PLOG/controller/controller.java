@@ -25,7 +25,6 @@ import java.util.List;
 
 @Controller
 public class controller {
-// 됐어?
     @Autowired
     public service s;
     @Autowired
