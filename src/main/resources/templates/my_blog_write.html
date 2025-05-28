@@ -5,173 +5,41 @@
     <title>Plog</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background-color: #f5f5f5;
-            align-items: center;
-        }
-
-        .left, .right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-            padding: 6px 12px;
-            border-radius: 4px;
-        }
-
-        a:hover {
-            background-color: #ddd;
-        }
-
-        .navbar-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: green;
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 2px;
-        }
-
-        .container {
-            display: flex;
-            height: calc(100vh - 60px);
-        }
-
-        .map-section {
-            flex: 1;
-            background-color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            color: #555;
-        }
-
-        .form-section {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            padding: 10px 16px;
-            border: none;
-            background-color: #28a745;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover:enabled {
-            background-color: #218838;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .location-entry {
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
-        }
-
-        .warning-message {
-            color: red;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: none;
-        }
+        .navbar { display: flex; justify-content: space-between; padding: 10px 20px; background-color: #f5f5f5; align-items: center; }
+        .left, .right { display: flex; gap: 10px; align-items: center; }
+        a { text-decoration: none; color: #333; padding: 6px 12px; border-radius: 4px; }
+        a:hover { background-color: #ddd; }
+        .navbar-title { font-size: 32px; font-weight: bold; color: green; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }
+        .container { display: flex; height: calc(100vh - 60px); }
+        .map-section { flex: 1; position: relative; }
+        .form-section { flex: 1; padding: 30px; overflow-y: auto; }
+        .form-group { margin-bottom: 20px; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+        button { padding: 10px 16px; border: none; background-color: #28a745; color: white; border-radius: 6px; cursor: pointer; }
+        button:hover:enabled { background-color: #218838; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .location-entry { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; background-color: #f9f9f9; }
+        .warning-message { color: red; font-weight: bold; margin-bottom: 15px; display: none; }
+        #map { width: 100%; height: 100%; }
+        #searchModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
+        #searchBox { background: white; width: 400px; margin: 50px auto; padding: 20px; border-radius: 10px; }
+        #searchResults { margin-top: 10px; max-height: 300px; overflow-y: auto; }
+        .search-result-item { padding: 8px; border-bottom: 1px solid #ccc; cursor: pointer; }
+        .search-result-item:hover { background-color: #f0f0f0; }
     </style>
 
-    <!-- 카카오 주소 API -->
-    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-
-    <script>
-        let locationIndex = 0;
-
-        function openPostcode() {
-            new daum.Postcode({
-                oncomplete: function(data) {
-                    addLocationEntry(data.address);
-                }
-            }).open();
-        }
-
-        function addLocationEntry(address) {
-            const container = document.getElementById('location-entries');
-
-            const entryHTML = `
-                <div class="location-entry">
-                    <div class="form-group">
-                        <label>장소 이름</label>
-                        <input type="text" name="locations[${locationIndex}].locationName" value="${address}" required/>
-                    </div>
-                    <div class="form-group">
-                        <label>내용</label>
-                        <textarea name="locations[${locationIndex}].content" rows="4" placeholder="이 장소에 대한 내용을 적어보세요." required></textarea>
-                    </div>
-                </div>
-            `;
-
-            container.insertAdjacentHTML('beforeend', entryHTML);
-            locationIndex++;
-
-            updateSaveButton();
-        }
-
-        function updateSaveButton() {
-            const saveBtn = document.getElementById('saveBtn');
-            const warning = document.getElementById('warningMessage');
-            const hasLocation = document.getElementById('location-entries').children.length > 0;
-
-            saveBtn.disabled = !hasLocation;
-            warning.style.display = hasLocation ? 'none' : 'block';
-        }
-
-        window.onload = function() {
-            updateSaveButton();
-        }
-    </script>
+    <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false&libraries=services'}"></script>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="left">
-        <a th:href="@{/}" class="navbar-title">Plog</a>
-    </div>
-
+    <div class="left"><a th:href="@{/}" class="navbar-title">Plog</a></div>
     <div class="right">
         <div th:if="${name == 'anonymousUser'}">
             <a th:href="@{/login}">로그인</a>
             <a th:href="@{/signup}">회원가입</a>
         </div>
-        <div th:if="${name != 'anonymousUser'}" style="display: flex; align-items: center; gap: 10px;">
+        <div th:if="${name != 'anonymousUser'}">
             <a th:href="@{/my-planner}">내 플래너</a>
             <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
             <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
@@ -182,28 +50,194 @@
 
 <div class="container">
     <div class="map-section">
-        <button type="button" onclick="openPostcode()">장소 추가</button>
+        <button style="position:absolute; top:10px; left:10px; z-index:10;" onclick="openSearchModal()">장소 검색</button>
+        <div id="map"></div>
     </div>
 
     <div class="form-section">
         <form th:action="@{/user/my_blog/{username}/write(username=${name})}" method="post">
             <h2>여행 블로그 작성</h2>
-
             <div class="form-group">
                 <label>블로그 제목</label>
-                <input type="text" name="title" placeholder="여행의 제목을 입력하세요" required/>
+                <input type="text" name="title" placeholder="여행의 제목을 입력하세요" required />
             </div>
-
-            <div id="warningMessage" class="warning-message">
-                📍 위치를 최소 1개 이상 추가해주세요!
-            </div>
-
+            <div id="warningMessage" class="warning-message">📍 위치를 최소 1개 이상 추가해주세요!</div>
             <div id="location-entries"></div>
-
-            <button id="saveBtn" type="submit" style="margin-left: 10px;">저장</button>
+            <button type="button" onclick="addLocationEntry()">장소 추가</button>
+            <button id="saveBtn" type="submit" disabled>저장</button>
         </form>
     </div>
 </div>
+
+<div id="searchModal">
+    <div id="searchBox">
+        <input type="text" id="searchInput" placeholder="장소를 검색하세요" style="width: 100%; padding: 10px;">
+        <button onclick="searchPlace()" style="margin-top: 10px; width: 100%;">검색</button>
+        <div id="searchResults"></div>
+        <button onclick="closeSearchModal()" style="margin-top: 10px; width: 100%;">닫기</button>
+    </div>
+</div>
+
+<script>
+    let map, geocoder;
+    let currentEntryIndex = null;
+    const markers = {};
+    const lines = [];
+
+    function initMap() {
+        map = new kakao.maps.Map(document.getElementById('map'), {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 3
+        });
+        geocoder = new kakao.maps.services.Geocoder();
+
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+            if (currentEntryIndex === null) {
+                alert("먼저 '장소 추가' 버튼을 클릭하여 장소를 추가해주세요.");
+                return;
+            }
+
+            const latlng = mouseEvent.latLng;
+            const marker = new kakao.maps.Marker({ position: latlng });
+
+            if (markers[currentEntryIndex]) {
+                markers[currentEntryIndex].setMap(null);
+            }
+            marker.setMap(map);
+            markers[currentEntryIndex] = marker;
+
+            drawPolyline();
+
+            geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const address = result[0].address.address_name;
+                    updateLocationEntry(currentEntryIndex, address, latlng.getLat(), latlng.getLng());
+                } else {
+                    alert("장소를 찾을 수 없습니다.");
+                }
+            });
+        });
+    }
+
+    function drawPolyline() {
+        lines.forEach(line => line.setMap(null));
+        lines.length = 0;
+
+        const markerList = Object.values(markers);
+        if (markerList.length > 1) {
+            for (let i = 0; i < markerList.length - 1; i++) {
+                const path = [
+                    markerList[i].getPosition(),
+                    markerList[i + 1].getPosition()
+                ];
+                const polyline = new kakao.maps.Polyline({
+                    path,
+                    strokeWeight: 4,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeStyle: 'solid'
+                });
+                polyline.setMap(map);
+                lines.push(polyline);
+            }
+        }
+    }
+
+    function openSearchModal() {
+        document.getElementById('searchModal').style.display = 'block';
+    }
+
+    function closeSearchModal() {
+        document.getElementById('searchModal').style.display = 'none';
+        document.getElementById('searchResults').innerHTML = '';
+    }
+
+    function searchPlace() {
+        const keyword = document.getElementById('searchInput').value.trim();
+        if (!keyword) return;
+
+        const ps = new kakao.maps.services.Places();
+        ps.keywordSearch(keyword, function(data, status) {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '';
+
+            if (status === kakao.maps.services.Status.OK && data.length > 0) {
+                data.forEach((place) => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.textContent = place.place_name;
+                    div.onclick = () => {
+                        const latlng = new kakao.maps.LatLng(place.y, place.x);
+                        map.setCenter(latlng);
+
+                        const marker = new kakao.maps.Marker({ position: latlng });
+
+                        if (markers[currentEntryIndex]) {
+                            markers[currentEntryIndex].setMap(null);
+                        }
+                        marker.setMap(map);
+                        markers[currentEntryIndex] = marker;
+
+                        drawPolyline();
+
+                        if (currentEntryIndex !== null) {
+                            updateLocationEntry(currentEntryIndex, place.place_name, place.y, place.x);
+                        }
+                        closeSearchModal();
+                    };
+                    resultsContainer.appendChild(div);
+                });
+            } else {
+                resultsContainer.innerHTML = '<div class="search-result-item">장소를 찾을 수 없습니다.</div>';
+            }
+        });
+    }
+
+    function addLocationEntry() {
+        const container = document.getElementById('location-entries');
+        const index = container.children.length;
+        const entryHTML = `
+            <div class="location-entry" id="location-entry-${index}">
+                <div class="form-group">
+                    <label>장소 이름</label>
+                    <input type="text" name="locations[${index}].locationName" placeholder="지도를 클릭하거나 검색 후 선택하세요" required readonly />
+                    <input type="hidden" name="locations[${index}].latitude" />
+                    <input type="hidden" name="locations[${index}].longitude" />
+                </div>
+                <div class="form-group">
+                    <label>내용</label>
+                    <textarea name="locations[${index}].content" rows="4" placeholder="이 장소에 대한 내용을 적어보세요." required></textarea>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', entryHTML);
+        currentEntryIndex = index;
+        updateSaveButton();
+    }
+
+    function updateLocationEntry(index, name, lat = null, lng = null) {
+        const entry = document.getElementById(`location-entry-${index}`);
+        if (entry) {
+            entry.querySelector(`input[name="locations[${index}].locationName"]`).value = name;
+            if (lat && lng) {
+                entry.querySelector(`input[name="locations[${index}].latitude"]`).value = lat;
+                entry.querySelector(`input[name="locations[${index}].longitude"]`).value = lng;
+            }
+        }
+    }
+
+    function updateSaveButton() {
+        const hasLocation = document.getElementById('location-entries').children.length > 0;
+        document.getElementById('saveBtn').disabled = !hasLocation;
+        document.getElementById('warningMessage').style.display = hasLocation ? 'none' : 'block';
+    }
+
+    window.onload = function () {
+        kakao.maps.load(function () {
+            initMap();
+            updateSaveButton();
+        });
+    };
+</script>
 
 </body>
 </html>

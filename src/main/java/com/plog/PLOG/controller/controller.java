@@ -128,6 +128,7 @@ public class controller {
             model.addAttribute("name", name);
             String nickname = s.getCurrentName();
             model.addAttribute("nickname", nickname);
+            model.addAttribute("kakaoApiKey", kakaoApiKey);
             return "my_blog_write";
         }
 

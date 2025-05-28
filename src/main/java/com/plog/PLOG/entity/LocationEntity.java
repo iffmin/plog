@@ -19,6 +19,12 @@ public class LocationEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column
+    private Double longitude; //경도
+
+    @Column
+    private Double latitude; // 위도
+
     @ManyToOne
     private BoardEntity boardEntity;
 

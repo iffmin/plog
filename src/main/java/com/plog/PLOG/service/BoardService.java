@@ -64,6 +64,8 @@ public class BoardService {
             LocationEntity location = new LocationEntity();
             location.setLocationName(dto.getLocationName());
             location.setContent(dto.getContent());
+            location.setLongitude(dto.getLongitude());
+            location.setLatitude(dto.getLatitude());
             board.addlocationEntity(location);
             locationRepository.save(location);
 
