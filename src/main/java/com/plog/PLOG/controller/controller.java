@@ -210,4 +210,14 @@ public class controller {
         return "redirect:/";
     }
 
+    @PostMapping("/board/{boardid}/delete")
+    public String boardDeleteProc(@PathVariable("boardid") Long boardid){
+        if(b_s.isAccess(boardid)){
+            b_s.deleteboard(boardid);
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            return "redirect:/user/my_blog/" + username;
+        }
+        return "redirect:/";
+    }
+
 }

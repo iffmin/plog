@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class controller2 {
-    @GetMapping("/planner")
+    @GetMapping("/my-planner")
     public String planner(){
         return "planner";
     }
