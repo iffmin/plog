@@ -157,7 +157,18 @@ public class BoardService {
         return result;
     }
 
+    @Transactional
+    public void deletelocation(Long id){
+        locationRepository.deleteById(id); //location id
+    }
 
+    @Transactional
+    public void deleteboard(Long id){ //board id
+        List<LocationEntity> location = locationRepository.findByBoardEntityId(id);
+        locationRepository.deleteAll(location);//board id
+        boardRepository.deleteById(id);
+
+    }
 
 
 }

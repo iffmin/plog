@@ -84,8 +84,13 @@
             cursor: pointer;
         }
 
-        button:hover {
+        button:hover:enabled {
             background-color: #218838;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
 
         .location-entry {
@@ -94,6 +99,13 @@
             padding: 16px;
             margin-bottom: 20px;
             background-color: #f9f9f9;
+        }
+
+        .warning-message {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
         }
     </style>
 
@@ -106,7 +118,7 @@
         function openPostcode() {
             new daum.Postcode({
                 oncomplete: function(data) {
-                    addLocationEntry(data.address); // 주소 받아서 장소 이름 input에 넣기
+                    addLocationEntry(data.address);
                 }
             }).open();
         }
@@ -129,6 +141,21 @@
 
             container.insertAdjacentHTML('beforeend', entryHTML);
             locationIndex++;
+
+            updateSaveButton();
+        }
+
+        function updateSaveButton() {
+            const saveBtn = document.getElementById('saveBtn');
+            const warning = document.getElementById('warningMessage');
+            const hasLocation = document.getElementById('location-entries').children.length > 0;
+
+            saveBtn.disabled = !hasLocation;
+            warning.style.display = hasLocation ? 'none' : 'block';
+        }
+
+        window.onload = function() {
+            updateSaveButton();
         }
     </script>
 </head>
@@ -167,9 +194,13 @@
                 <input type="text" name="title" placeholder="여행의 제목을 입력하세요" required/>
             </div>
 
+            <div id="warningMessage" class="warning-message">
+                📍 위치를 최소 1개 이상 추가해주세요!
+            </div>
+
             <div id="location-entries"></div>
 
-            <button type="submit" style="margin-left: 10px;">저장</button>
+            <button id="saveBtn" type="submit" style="margin-left: 10px;">저장</button>
         </form>
     </div>
 </div>
