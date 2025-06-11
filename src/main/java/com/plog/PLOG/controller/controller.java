@@ -47,6 +47,7 @@ public class controller {
         List<BoardDTO> BOARDLIST = b_s.readallBoards();
         model.addAttribute("BOARDLIST", BOARDLIST);
         model.addAttribute("kakaoApiKey", kakaoApiKey);
+
         return "home";
     }
 

@@ -16,6 +16,9 @@ public class LocationEntity {
     @Column
     private String locationName;
 
+    @Column
+    private String locationAddress;
+
     @Column(columnDefinition = "TEXT")
     private String content;
 

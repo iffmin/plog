@@ -27,9 +27,7 @@
             border-radius: 4px;
         }
 
-        a:hover {
-            background-color: #ddd;
-        }
+        a:hover { background-color: #ddd; }
 
         .navbar-title {
             font-size: 32px;
@@ -61,9 +59,7 @@
             border: none;
         }
 
-        .search-container button:hover {
-            background-color: #45a049;
-        }
+        .search-container button:hover { background-color: #45a049; }
 
         .main-container {
             display: flex;
@@ -106,6 +102,7 @@
             font-size: 14px;
             color: #666;
             margin-bottom: 4px;
+            cursor: pointer;
         }
 
         .blog-content-preview {
@@ -130,7 +127,7 @@
             <a th:href="@{/login}">로그인</a>
             <a th:href="@{/signup}">회원가입</a>
         </div>
-        <div th:if="${name != 'anonymousUser'}" style="display: flex; align-items: center; gap: 10px;">
+        <div th:if="${name != 'anonymousUser'}">
             <a th:href="@{/my-planner}">내 플래너</a>
             <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
             <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
@@ -139,54 +136,142 @@
     </div>
 </div>
 
-<!-- 검색창 -->
-<div class="search-container">
-    <input type="text" placeholder="검색..." id="searchInput">
-    <button onclick="searchPosts()">검색</button>
-</div>
-
-<!-- 지도 + 블로그 리스트 -->
 <div class="main-container">
-    <!-- 지도 -->
     <div id="map"></div>
 
-    <!-- 블로그 목록 -->
-    <div class="blog-list">
-        <div th:each="board : ${BOARDLIST}" class="blog-card">
-            <a th:href="@{'/board/' + ${board.id}}" class="blog-title" th:text="${board.title}">블로그 제목</a>
-
-            <div th:each="loc : ${board.locations}">
-                <div class="blog-location" th:text="${loc.locationName}">장소명</div>
-                <div class="blog-content-preview" th:text="${loc.content}">내용 미리보기</div>
-            </div>
-        </div>
-    </div>
+    <div class="blog-list"></div>
 </div>
 
-<!-- ✅ 카카오맵 SDK -->
 <script
         type="text/javascript"
         th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false'}">
 </script>
 
-
 <script>
-    // SDK 로드 후 실행
-    kakao.maps.load(function () {
-        var container = document.getElementById('map');
-        var options = {
+    let map = null;
+    let marker = null;
+
+    kakao.maps.load(() => {
+        map = new kakao.maps.Map(document.getElementById('map'), {
             center: new kakao.maps.LatLng(35.142785, 126.934717),
             level: 3
-        };
-        var map = new kakao.maps.Map(container, options);
-    });
+        });
 
-    function searchPosts() {
-        const searchTerm = document.getElementById('searchInput').value;
-        if (searchTerm) {
-            window.location.href = "/search?query=" + encodeURIComponent(searchTerm);
+        kakao.maps.event.addListener(map, 'click', event => {
+            const lat = event.latLng.getLat();
+            const lng = event.latLng.getLng();
+
+            if (marker) marker.setMap(null);
+
+            marker = new kakao.maps.Marker({
+                position: new kakao.maps.LatLng(lat, lng),
+                map: map
+            });
+
+            kakao.maps.event.addListener(marker, 'click', () => {
+                marker.setMap(null);
+                marker = null;
+                loadAllBlogs();
+            });
+
+            fetch(`/nearby?lat=${lat}&lng=${lng}&radius=1.0`)
+                .then(res => res.json())
+                .then(data => {
+                    // 묶지 않고 각 위치별로 따로 표시
+                    renderNearbyBlogsSeparately(data);
+                });
+        });
+
+        function loadAllBlogs() {
+            fetch('/read-all')
+                .then(res => res.json())
+                .then(data => renderBlogs(data));
         }
-    }
+
+        function renderBlogs(data) {
+            const blogList = document.querySelector('.blog-list');
+            blogList.innerHTML = '';
+
+            data.forEach(board => {
+                const card = document.createElement('div');
+                card.className = 'blog-card';
+
+                const titleLink = document.createElement('a');
+                titleLink.className = 'blog-title';
+                titleLink.href = `/board/${board.id}`;
+                titleLink.innerText = board.title || '제목 없음';
+                card.appendChild(titleLink);
+
+                (board.locations || []).forEach(loc => {
+                    const locationDiv = document.createElement('div');
+                    locationDiv.className = 'blog-location';
+                    locationDiv.innerText = loc.locationName || '장소명 없음';
+                    locationDiv.onclick = () => showMarkerByLocationID(loc.id);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'blog-content-preview';
+                    contentDiv.innerText = loc.content || '내용 없음';
+
+                    card.appendChild(locationDiv);
+                    card.appendChild(contentDiv);
+                });
+
+                blogList.appendChild(card);
+            });
+        }
+
+        function renderNearbyBlogsSeparately(locations) {
+            const blogList = document.querySelector('.blog-list');
+            blogList.innerHTML = '';
+
+            // locations 배열을 그대로 순회하며 각 위치별로 카드 생성
+            locations.forEach(loc => {
+                const card = document.createElement('div');
+                card.className = 'blog-card';
+
+                // 블로그 제목 링크 생성 (loc에 board_name, board_id가 있다고 가정)
+                const titleLink = document.createElement('a');
+                titleLink.className = 'blog-title';
+                titleLink.href = `/board/${loc.board_id}`;
+                titleLink.innerText = loc.board_name || '제목 없음';
+                card.appendChild(titleLink);
+
+                // 위치명
+                const locationDiv = document.createElement('div');
+                locationDiv.className = 'blog-location';
+                locationDiv.innerText = loc.locationName || '장소명 없음';
+                locationDiv.onclick = () => showMarkerByLocationID(loc.id);
+                card.appendChild(locationDiv);
+
+                // 내용 미리보기
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'blog-content-preview';
+                contentDiv.innerText = loc.content || '내용 없음';
+                card.appendChild(contentDiv);
+
+                blogList.appendChild(card);
+            });
+        }
+
+        function showMarkerByLocationID(locationId) {
+            if (!locationId) return;
+
+            fetch(`/api/coordinates?id=${encodeURIComponent(locationId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (marker) marker.setMap(null);
+
+                    const position = new kakao.maps.LatLng(data.latitude, data.longitude);
+                    marker = new kakao.maps.Marker({ position, map });
+
+                    map.setCenter(position);
+                    map.setLevel(3);
+                })
+                .catch(() => alert("위치를 불러오는 데 실패했습니다."));
+        }
+
+        loadAllBlogs();
+    });
 </script>
 
 </body>
