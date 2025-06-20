@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Plog - 블로그 수정</title>
+    <title>Plog</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false&libraries=services'}"></script>
     <style>
@@ -91,7 +91,6 @@
 
         geocoder = new kakao.maps.services.Geocoder();
 
-        // 기존 위치들을 지도에 표시하고 연결
         const locations = /*[[${locations}]]*/ [];
         const path = [];
 

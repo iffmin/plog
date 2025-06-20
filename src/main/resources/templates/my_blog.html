@@ -75,7 +75,7 @@
 <script th:inline="javascript">
   let map;
   let routeMap = new Map();
-  let selectedMarker = null; // 장소 클릭 시 표시되는 단일 마커 추적용
+  let selectedMarker = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     kakao.maps.load(() => {
@@ -100,18 +100,15 @@
 
       const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
 
-      // 기존 마커 제거
       if (selectedMarker) {
         selectedMarker.setMap(null);
       }
 
-      // 새 마커 생성
       selectedMarker = new kakao.maps.Marker({
         position: pos,
         map: map
       });
 
-      // 마커 클릭 시 제거
       kakao.maps.event.addListener(selectedMarker, 'click', () => {
         selectedMarker.setMap(null);
         selectedMarker = null;
