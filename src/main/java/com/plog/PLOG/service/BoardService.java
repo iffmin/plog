@@ -1,6 +1,5 @@
 package com.plog.PLOG.service;
 
-
 import com.plog.PLOG.dto.BoardDTO;
 import com.plog.PLOG.dto.LocationDTO;
 import com.plog.PLOG.entity.BoardEntity;
@@ -26,42 +25,32 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final repository userRepository;
     private final LocationRepository locationRepository;
+
     public BoardService(BoardRepository boardRepository, repository userRepository, LocationRepository locationRepository) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
         this.locationRepository = locationRepository;
     }
 
-
     public Boolean isAccess(Long id) {
-
         String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         String sessionRole = SecurityContextHolder.getContext().getAuthentication().getAuthorities().iterator().next().getAuthority();
-
         if ("ROLE_ADMIN".equals(sessionRole)) {
             return true;
         }
-
         String boardUsername = boardRepository.findById(id).orElseThrow().getEntity().getUsername();
-
-        if (sessionUsername.equals(boardUsername)) {
-            return true;
-        }
-        return false;
+        return sessionUsername.equals(boardUsername);
     }
 
     @Transactional
     public void createOneBoard(BoardDTO b_dto, List<LocationDTO> l_dto) {
-        BoardEntity board = new BoardEntity();
-
-        board.setTitle(b_dto.getTitle());
-        boardRepository.save(board);
-
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         entity user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.addBoardEntity(board);
-        userRepository.save(user);
+        BoardEntity board = new BoardEntity();
+        board.setTitle(b_dto.getTitle());
+        board.setEntity(user);
+        boardRepository.save(board);
 
         for (LocationDTO dto : l_dto) {
             LocationEntity location = new LocationEntity();
@@ -70,15 +59,28 @@ public class BoardService {
             location.setContent(dto.getContent());
             location.setLongitude(dto.getLongitude());
             location.setLatitude(dto.getLatitude());
-            board.addlocationEntity(location);
+            location.setBoardEntity(board);
             locationRepository.save(location);
-
         }
     }
+/*
+    @Transactional
+    public List<BoardDTO> readOneALLBoard(Long id) {
+        List<BoardEntity> list = boardRepository.findByEntityId(id, Sort.by(Sort.Direction.DESC, "id"));
+        List<BoardDTO> dtos = new ArrayList<>();
+
+        for (BoardEntity boardEntity : list) {
+            BoardDTO dto = new BoardDTO();
+            dto.setId(boardEntity.getId());
+            dto.setTitle(boardEntity.getTitle());
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }*/
 
     @Transactional
-    public List<BoardDTO> readOneALLBoard(Long id){
-
+    public List<BoardDTO> readOneALLBoard(Long id) {
         List<BoardEntity> list = boardRepository.findByEntityId(id, Sort.by(Sort.Direction.DESC, "id"));
         List<BoardDTO> dtos = new ArrayList<>();
 
@@ -87,6 +89,20 @@ public class BoardService {
             dto.setId(boardEntity.getId());
             dto.setTitle(boardEntity.getTitle());
 
+            List<LocationDTO> locationDTOList = new ArrayList<>();
+            for (LocationEntity location : boardEntity.getLocationEntityList()) {
+                LocationDTO locationDTO = new LocationDTO();
+                locationDTO.setId(location.getId());
+                locationDTO.setLocationName(location.getLocationName());
+                locationDTO.setLocationAddress(location.getLocationAddress());
+                locationDTO.setContent(location.getContent());
+                locationDTO.setLatitude(location.getLatitude());
+                locationDTO.setLongitude(location.getLongitude());
+                locationDTO.setBoard_id(boardEntity.getId());
+                locationDTOList.add(locationDTO);
+            }
+
+            dto.setLocations(locationDTOList);
             dtos.add(dto);
         }
 
@@ -94,10 +110,8 @@ public class BoardService {
     }
 
 
-
     @Transactional
-    public List<LocationDTO> readBoard(Long id){
-
+    public List<LocationDTO> readBoard(Long id) {
         List<LocationEntity> list = locationRepository.findByBoardEntityId(id);
         List<LocationDTO> dtos = new ArrayList<>();
 
@@ -110,7 +124,6 @@ public class BoardService {
             dto.setLatitude(locationEntity.getLatitude());
             dto.setLongitude(locationEntity.getLongitude());
             dto.setBoard_id(locationEntity.getBoardEntity().getId());
-
             dtos.add(dto);
         }
 
@@ -118,12 +131,13 @@ public class BoardService {
     }
 
     @Transactional
-    public List<LocationDTO> updateBoard(Long id, List<LocationDTO> dtos){
+    public List<LocationDTO> updateBoard(Long id, List<LocationDTO> dtos, String newTitle) {
         BoardEntity board = boardRepository.findById(id).orElseThrow();
-
         List<LocationEntity> existingLocations = locationRepository.findByBoardEntityId(id);
-
         int existingSize = existingLocations.size();
+
+        board.setTitle(newTitle);
+        boardRepository.save(board);
 
         for (int i = 0; i < dtos.size(); i++) {
             LocationDTO dto = dtos.get(i);
@@ -135,6 +149,7 @@ public class BoardService {
                 entity.setContent(dto.getContent());
                 entity.setLatitude(dto.getLatitude());
                 entity.setLongitude(dto.getLongitude());
+                locationRepository.save(entity);
             } else {
                 LocationEntity newEntity = new LocationEntity();
                 newEntity.setLocationName(dto.getLocationName());
@@ -152,10 +167,9 @@ public class BoardService {
 
     @Transactional
     public List<BoardDTO> readallBoards() {
-
         List<BoardEntity> entities = boardRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-
         List<BoardDTO> result = new ArrayList<>();
+
         for (BoardEntity board : entities) {
             BoardDTO boardDTO = new BoardDTO();
             boardDTO.setId(board.getId());
@@ -182,22 +196,20 @@ public class BoardService {
     }
 
     @Transactional
-    public void deletelocation(Long id){
-        locationRepository.deleteById(id); //location id
+    public void deletelocation(Long id) {
+        locationRepository.deleteById(id);
     }
 
     @Transactional
-    public void deleteboard(Long id){ //board id
-        List<LocationEntity> location = locationRepository.findByBoardEntityId(id);
-        locationRepository.deleteAll(location);//board id
-        boardRepository.deleteById(id);
-
+    public void deleteboard(Long id) {
+        BoardEntity board = boardRepository.findById(id).orElseThrow();
+        List<LocationEntity> locations = locationRepository.findByBoardEntityId(id);
+        locationRepository.deleteAll(locations);
+        boardRepository.delete(board);
     }
 
     @Transactional(readOnly = true)
     public List<LocationDTO> findBoardsNearby(double latitude, double longitude, double radius) {
-
-        // 대략적 범위 쿼리
         List<LocationEntity> candidates = locationRepository.findByLatitudeBetweenAndLongitudeBetween(
                 latitude - radius, latitude + radius,
                 longitude - radius, longitude + radius
@@ -215,35 +227,29 @@ public class BoardService {
                 dto.setContent(loc.getContent());
                 dto.setLatitude(loc.getLatitude());
                 dto.setLongitude(loc.getLongitude());
-
                 dtos.add(dto);
             }
         }
         return dtos;
     }
 
-    // Haversine 공식으로 두 좌표 거리(km) 계산
     private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
-        final int R = 6371; // 지구 반경(km)
+        final int R = 6371;
         double dLat = Math.toRadians(lat2 - lat1);
         double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng/2) * Math.sin(dLng/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
 
     @Transactional
-    public Map<String, Double> findLocation(Long id){ // id = locationid
+    public Map<String, Double> findLocation(Long id) {
         LocationEntity locationEntity = locationRepository.findById(id).orElseThrow();
         Map<String, Double> response = new HashMap<>();
         response.put("longitude", locationEntity.getLongitude());
         response.put("latitude", locationEntity.getLatitude());
         return response;
     }
-
 }
-
-
-

@@ -1,276 +1,254 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Plog</title>
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background-color: #f5f5f5;
-            align-items: center;
-        }
-
-        .left, .right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-            padding: 6px 12px;
-            border-radius: 4px;
-        }
-
-        a:hover { background-color: #ddd; }
-
-        .navbar-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: green;
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 2px;
-        }
-
-        .search-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .search-container input {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            width: 200px;
-        }
-
-        .search-container button {
-            padding: 6px 12px;
-            border-radius: 4px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-        }
-
-        .search-container button:hover { background-color: #45a049; }
-
-        .main-container {
-            display: flex;
-            justify-content: center;
-            padding: 0 20px 40px;
-            gap: 20px;
-        }
-
-        #map {
-            width: 600px;
-            height: 600px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .blog-list {
-            width: 600px;
-            height: 600px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .blog-card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-            background-color: #fafafa;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .blog-title {
-            font-size: 22px;
-            color: #2a5d9f;
-            margin-bottom: 14px;
-            display: block;
-        }
-
-        .blog-location {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 4px;
-            cursor: pointer;
-        }
-
-        .blog-content-preview {
-            font-size: 15px;
-            color: #333;
-            margin-bottom: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false'}"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.1.0/remixicon.css" rel="stylesheet" />
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-<div class="navbar">
-    <div class="left">
-        <a th:href="@{/}" class="navbar-title">Plog</a>
-    </div>
-
-    <div class="right">
+<!-- 상단 내비게이션 -->
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <a th:href="@{/}" class="text-2xl font-bold text-indigo-600 font-['Pacifico']">Plog</a>
+    <div class="flex gap-3 items-center">
         <div th:if="${name == 'anonymousUser'}">
-            <a th:href="@{/login}">로그인</a>
-            <a th:href="@{/signup}">회원가입</a>
+            <a th:href="@{/login}" class="text-sm px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">로그인</a>
+            <a th:href="@{/signup}" class="text-sm px-4 py-2 rounded-full bg-indigo-500 text-white hover:bg-indigo-600">회원가입</a>
         </div>
-        <div th:if="${name != 'anonymousUser'}">
-            <a th:href="@{/my-planner}">내 플래너</a>
-            <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
-            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
-            <a th:href="@{/logout}">로그아웃</a>
+        <!-- 로그인 된 사용자 메뉴 -->
+        <div th:if="${name != 'anonymousUser'}" class="flex gap-2 items-center">
+            <a th:href="@{/my-planner}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">내 플래너</a>
+            <a th:href="@{'/user/my_blog/' + ${name}}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">내 블로그</a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition"></a>
+            <a th:href="@{/logout}" class="text-sm px-3 py-1 rounded-full bg-gray-300 text-gray-800 hover:bg-gray-400 transition">로그아웃</a>
         </div>
+
     </div>
-</div>
+</header>
 
-<div class="main-container">
-    <div id="map"></div>
+<!-- 지도 + 주변 블로그 -->
+<section class="flex h-[420px] border-t border-b mt-6">
+    <div class="w-[400px] overflow-y-auto p-6 space-y-6 bg-white">
+        <div id="nearby-instruction" class="text-center text-sm text-gray-500">지도를 클릭해서 주변 블로그를 확인하세요</div>
+        <div class="space-y-6" id="blog-list"></div>
+    </div>
+    <div class="flex-[3] relative">
+        <div id="map" class="absolute inset-0 rounded-md"></div>
+    </div>
+</section>
 
-    <div class="blog-list"></div>
-</div>
-
-<script
-        type="text/javascript"
-        th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false'}">
-</script>
+<!-- 전체 블로그 -->
+<section class="p-6 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">최신 여행 후기</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="all-blogs"></div>
+    </div>
+</section>
 
 <script>
     let map = null;
     let marker = null;
+    let tempMarkers = [];
+    let activeCardId = null;
 
     kakao.maps.load(() => {
-        map = new kakao.maps.Map(document.getElementById('map'), {
-            center: new kakao.maps.LatLng(35.142785, 126.934717),
-            level: 3
+      map = new kakao.maps.Map(document.getElementById('map'), {
+        center: new kakao.maps.LatLng(35.142785, 126.934717),
+        level: 3
+      });
+
+      kakao.maps.event.addListener(map, 'click', event => {
+        const lat = event.latLng.getLat();
+        const lng = event.latLng.getLng();
+
+        if (marker) marker.setMap(null);
+        clearTempMarkers();
+
+        marker = new kakao.maps.Marker({
+          position: new kakao.maps.LatLng(lat, lng),
+          map: map
         });
 
-        kakao.maps.event.addListener(map, 'click', event => {
-            const lat = event.latLng.getLat();
-            const lng = event.latLng.getLng();
+        map.panTo(new kakao.maps.LatLng(lat, lng));
+        document.getElementById('nearby-instruction').style.display = 'none';
 
-            if (marker) marker.setMap(null);
+        fetch(`/nearby?lat=${lat}&lng=${lng}&radius=1.0`)
+          .then(res => res.json())
+          .then(data => renderNearbyBlogsSeparately(data));
 
-            marker = new kakao.maps.Marker({
-                position: new kakao.maps.LatLng(lat, lng),
-                map: map
+        kakao.maps.event.addListener(marker, 'click', () => {
+          marker.setMap(null);
+          marker = null;
+          document.getElementById('nearby-instruction').style.display = 'block';
+          document.getElementById('blog-list').innerHTML = '';
+          loadAllBlogs();
+          clearTempMarkers();
+          activeCardId = null;
+        });
+      });
+
+      function clearTempMarkers() {
+        tempMarkers.forEach(m => m.setMap(null));
+        tempMarkers = [];
+      }
+
+      function loadAllBlogs() {
+        fetch('/read-all')
+          .then(res => res.json())
+          .then(data => renderAllBlogs(data));
+      }
+
+      function renderAllBlogs(data) {
+  const allList = document.getElementById('all-blogs');
+  allList.innerHTML = '';
+
+  data.forEach(board => {
+    const card = document.createElement('div');
+    card.className = 'rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow cursor-pointer bg-white p-4';
+
+    // 제목
+    const title = document.createElement('a');
+    title.href = `/board/${board.id}`;
+    title.className = 'block text-base font-semibold text-gray-800 mb-4';
+    title.innerText = board.title || '제목 없음';
+    card.appendChild(title);
+
+    // 장소 + 해당 장소의 내용 3줄 이내
+    (board.locations || []).forEach(loc => {
+      const locGroup = document.createElement('div');
+      locGroup.className = 'mb-4';
+
+      // 장소 이름
+      const locDiv = document.createElement('div');
+      locDiv.className = 'text-sm text-indigo-500 mb-1 cursor-pointer font-medium flex items-center';
+
+      const pinIcon = document.createElement('i');
+      pinIcon.className = 'ri-map-pin-2-fill mr-1 text-red-400';
+      locDiv.appendChild(pinIcon);
+
+      const locText = document.createTextNode(loc.locationName || '장소명 없음');
+      locDiv.appendChild(locText);
+
+      locDiv.onclick = () => showMarkerByLocationID(loc.id);
+      locGroup.appendChild(locDiv);
+
+      // 장소별 내용 3줄로 제한 (Tailwind line-clamp 사용)
+      const content = document.createElement('p');
+      content.className = 'text-sm text-gray-700 line-clamp-3';
+      content.innerText = loc.content || '내용 없음';
+      locGroup.appendChild(content);
+
+      card.appendChild(locGroup);
+    });
+
+    allList.appendChild(card);
+  });
+}
+
+
+      function renderNearbyBlogsSeparately(locations) {
+        const list = document.getElementById('blog-list');
+        list.innerHTML = '';
+        clearTempMarkers();
+        activeCardId = null;
+
+        locations.forEach(loc => {
+          const card = document.createElement('div');
+          card.className = 'rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow cursor-pointer bg-white';
+          card.id = `card-${loc.id}`;
+
+          const body = document.createElement('div');
+          body.className = 'p-3';
+
+          const title = document.createElement('a');
+          title.href = `/board/${loc.board_id}`;
+          title.className = 'block text-sm font-semibold text-gray-800';
+          title.innerText = loc.board_name || '제목 없음';
+          body.appendChild(title);
+
+          const locDiv = document.createElement('div');
+          locDiv.className = 'text-xs text-indigo-500 mt-1 cursor-pointer font-medium flex items-center';
+
+          const pinIcon = document.createElement('i');
+          pinIcon.className = 'ri-map-pin-2-fill mr-1 text-red-400';
+          locDiv.appendChild(pinIcon);
+
+          const locText = document.createTextNode(loc.locationName || '장소명 없음');
+          locDiv.appendChild(locText);
+
+          locDiv.onclick = () => showMarkerByLocationID(loc.id);
+          body.appendChild(locDiv);
+
+          const contentDiv = document.createElement('p');
+          contentDiv.className = 'text-xs text-gray-700';
+          contentDiv.innerText = loc.content || '내용 없음';
+          body.appendChild(contentDiv);
+
+          card.appendChild(body);
+          list.appendChild(card);
+
+          if (loc.latitude && loc.longitude) {
+            const tempMarker = new kakao.maps.Marker({
+              position: new kakao.maps.LatLng(loc.latitude, loc.longitude),
+              map: map,
+              image: new kakao.maps.MarkerImage(
+  'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+  new kakao.maps.Size(36, 36), // 더 선명한 핀
+  { offset: new kakao.maps.Point(18, 36) }
+)
+
             });
+            tempMarkers.push(tempMarker);
+
+            kakao.maps.event.addListener(tempMarker, 'click', () => {
+              const allCards = document.querySelectorAll('#blog-list > div');
+              allCards.forEach(c => c.classList.remove('ring-2', 'ring-indigo-400'));
+              const targetCard = document.getElementById(`card-${loc.id}`);
+              if (targetCard) {
+                targetCard.classList.add('ring-2', 'ring-indigo-400');
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                activeCardId = `card-${loc.id}`;
+              }
+            });
+          }
+        });
+      }
+
+      function showMarkerByLocationID(locationId) {
+        if (!locationId) return;
+
+        fetch(`/api/coordinates?id=${encodeURIComponent(locationId)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (marker) marker.setMap(null);
+            clearTempMarkers();
+
+            const position = new kakao.maps.LatLng(data.latitude, data.longitude);
+            marker = new kakao.maps.Marker({ position, map });
+            map.panTo(position);
+
+            document.getElementById('nearby-instruction').style.display = 'none';
+
+            fetch(`/nearby?lat=${data.latitude}&lng=${data.longitude}&radius=1.0`)
+              .then(res => res.json())
+              .then(data => renderNearbyBlogsSeparately(data));
 
             kakao.maps.event.addListener(marker, 'click', () => {
-                marker.setMap(null);
-                marker = null;
-                loadAllBlogs();
+              marker.setMap(null);
+              marker = null;
+              document.getElementById('nearby-instruction').style.display = 'block';
+              document.getElementById('blog-list').innerHTML = '';
+              loadAllBlogs();
+              clearTempMarkers();
+              activeCardId = null;
             });
+          })
+          .catch(() => alert("위치를 불러오는 데 실패했습니다."));
+      }
 
-            fetch(`/nearby?lat=${lat}&lng=${lng}&radius=1.0`)
-                .then(res => res.json())
-                .then(data => {
-                    // 묶지 않고 각 위치별로 따로 표시
-                    renderNearbyBlogsSeparately(data);
-                });
-        });
-
-        function loadAllBlogs() {
-            fetch('/read-all')
-                .then(res => res.json())
-                .then(data => renderBlogs(data));
-        }
-
-        function renderBlogs(data) {
-            const blogList = document.querySelector('.blog-list');
-            blogList.innerHTML = '';
-
-            data.forEach(board => {
-                const card = document.createElement('div');
-                card.className = 'blog-card';
-
-                const titleLink = document.createElement('a');
-                titleLink.className = 'blog-title';
-                titleLink.href = `/board/${board.id}`;
-                titleLink.innerText = board.title || '제목 없음';
-                card.appendChild(titleLink);
-
-                (board.locations || []).forEach(loc => {
-                    const locationDiv = document.createElement('div');
-                    locationDiv.className = 'blog-location';
-                    locationDiv.innerText = loc.locationName || '장소명 없음';
-                    locationDiv.onclick = () => showMarkerByLocationID(loc.id);
-
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'blog-content-preview';
-                    contentDiv.innerText = loc.content || '내용 없음';
-
-                    card.appendChild(locationDiv);
-                    card.appendChild(contentDiv);
-                });
-
-                blogList.appendChild(card);
-            });
-        }
-
-        function renderNearbyBlogsSeparately(locations) {
-            const blogList = document.querySelector('.blog-list');
-            blogList.innerHTML = '';
-
-            // locations 배열을 그대로 순회하며 각 위치별로 카드 생성
-            locations.forEach(loc => {
-                const card = document.createElement('div');
-                card.className = 'blog-card';
-
-                // 블로그 제목 링크 생성 (loc에 board_name, board_id가 있다고 가정)
-                const titleLink = document.createElement('a');
-                titleLink.className = 'blog-title';
-                titleLink.href = `/board/${loc.board_id}`;
-                titleLink.innerText = loc.board_name || '제목 없음';
-                card.appendChild(titleLink);
-
-                // 위치명
-                const locationDiv = document.createElement('div');
-                locationDiv.className = 'blog-location';
-                locationDiv.innerText = loc.locationName || '장소명 없음';
-                locationDiv.onclick = () => showMarkerByLocationID(loc.id);
-                card.appendChild(locationDiv);
-
-                // 내용 미리보기
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'blog-content-preview';
-                contentDiv.innerText = loc.content || '내용 없음';
-                card.appendChild(contentDiv);
-
-                blogList.appendChild(card);
-            });
-        }
-
-        function showMarkerByLocationID(locationId) {
-            if (!locationId) return;
-
-            fetch(`/api/coordinates?id=${encodeURIComponent(locationId)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (marker) marker.setMap(null);
-
-                    const position = new kakao.maps.LatLng(data.latitude, data.longitude);
-                    marker = new kakao.maps.Marker({ position, map });
-
-                    map.setCenter(position);
-                    map.setLevel(3);
-                })
-                .catch(() => alert("위치를 불러오는 데 실패했습니다."));
-        }
-
-        loadAllBlogs();
+      loadAllBlogs();
     });
 </script>
 

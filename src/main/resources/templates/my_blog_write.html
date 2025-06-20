@@ -3,80 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Plog</title>
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        .navbar { display: flex; justify-content: space-between; padding: 10px 20px; background-color: #f5f5f5; align-items: center; }
-        .left, .right { display: flex; gap: 10px; align-items: center; }
-        a { text-decoration: none; color: #333; padding: 6px 12px; border-radius: 4px; }
-        a:hover { background-color: #ddd; }
-        .navbar-title { font-size: 32px; font-weight: bold; color: green; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }
-        .container { display: flex; height: calc(100vh - 60px); }
-        .map-section { flex: 1; position: relative; }
-        .form-section { flex: 1; padding: 30px; overflow-y: auto; }
-        .form-group { margin-bottom: 20px; }
-        input[type="text"], textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
-        button { padding: 10px 16px; border: none; background-color: #28a745; color: white; border-radius: 6px; cursor: pointer; }
-        button:hover:enabled { background-color: #218838; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        .location-entry { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; background-color: #f9f9f9; }
-        .warning-message { color: red; font-weight: bold; margin-bottom: 15px; display: none; }
-        #map { width: 100%; height: 100%; }
-        #searchModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
-        #searchBox { background: white; width: 400px; margin: 50px auto; padding: 20px; border-radius: 10px; }
-        #searchResults { margin-top: 10px; max-height: 300px; overflow-y: auto; }
-        .search-result-item { padding: 8px; border-bottom: 1px solid #ccc; cursor: pointer; }
-        .search-result-item:hover { background-color: #f0f0f0; }
-    </style>
-
-    <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false&libraries=services'}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false&libraries=services'}"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.1.0/remixicon.css" rel="stylesheet" />
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-<div class="navbar">
-    <div class="left"><a th:href="@{/}" class="navbar-title">Plog</a></div>
-    <div class="right">
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <a th:href="@{/}" class="text-2xl font-bold text-indigo-600 font-['Pacifico']">Plog</a>
+    <div class="flex gap-3 items-center">
         <div th:if="${name == 'anonymousUser'}">
-            <a th:href="@{/login}">로그인</a>
-            <a th:href="@{/signup}">회원가입</a>
+            <a th:href="@{/login}" class="text-sm px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">로그인</a>
+            <a th:href="@{/signup}" class="text-sm px-4 py-2 rounded-full bg-indigo-500 text-white hover:bg-indigo-600">회원가입</a>
         </div>
-        <div th:if="${name != 'anonymousUser'}">
-            <a th:href="@{/my-planner}">내 플래너</a>
-            <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
-            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
-            <a th:href="@{/logout}">로그아웃</a>
+        <div th:if="${name != 'anonymousUser'}" class="flex gap-2 items-center">
+            <a th:href="@{/my-planner}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">내 플래너</a>
+            <a th:href="@{'/user/my_blog/' + ${name}}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">내 블로그</a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200"></a>
+            <a th:href="@{/logout}" class="text-sm px-3 py-1 rounded-full bg-gray-300 text-gray-800 hover:bg-gray-400">로그아웃</a>
         </div>
     </div>
-</div>
+</header>
 
-<div class="container">
-    <div class="map-section">
-        <button style="position:absolute; top:10px; left:10px; z-index:10;" onclick="openSearchModal()">장소 검색</button>
-        <div id="map"></div>
+<main class="flex-1 flex flex-col lg:flex-row">
+    <div class="lg:w-1/2 w-full relative h-[500px] lg:h-auto">
+        <button class="absolute top-4 left-4 bg-white px-4 py-2 rounded-full shadow text-sm hover:bg-gray-100 z-10" onclick="openSearchModal()">장소 검색</button>
+        <div id="map" class="w-full h-full border"></div>
     </div>
 
-    <div class="form-section">
+    <div class="lg:w-1/2 w-full bg-white rounded-xl shadow p-6 overflow-y-auto">
         <form th:action="@{/user/my_blog/{username}/write(username=${name})}" method="post">
-            <h2>여행 블로그 작성</h2>
-            <div class="form-group">
-                <label>블로그 제목</label>
-                <input type="text" name="title" placeholder="여행의 제목을 입력하세요" required />
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">📝 여행 블로그 작성</h2>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-600">블로그 제목</label>
+                <input type="text" name="title" placeholder="여행의 제목을 입력하세요"
+                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required />
             </div>
-            <div id="warningMessage" class="warning-message">📍 위치를 최소 1개 이상 추가해주세요!</div>
+
+            <div id="warningMessage" class="text-red-500 font-medium mb-3 hidden">📍 위치를 최소 1개 이상 추가해주세요!</div>
             <div id="location-entries"></div>
-            <button type="button" onclick="addLocationEntry()">장소 추가</button>
-            <button id="saveBtn" type="submit" disabled>저장</button>
+
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="addLocationEntry()"
+                        class="px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-sm">장소 추가</button>
+                <button id="saveBtn" type="submit" disabled
+                        class="px-4 py-2 rounded-full bg-indigo-500 text-white text-sm hover:bg-indigo-600 disabled:opacity-50">저장</button>
+            </div>
         </form>
     </div>
-</div>
+</main>
 
-<div id="searchModal">
-    <div id="searchBox">
-        <input type="text" id="searchInput" placeholder="장소를 검색하세요" style="width: 100%; padding: 10px;">
-        <button onclick="searchPlace()" style="margin-top: 10px; width: 100%;">검색</button>
-        <div id="searchResults"></div>
-        <button onclick="closeSearchModal()" style="margin-top: 10px; width: 100%;">닫기</button>
+<div id="searchModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md">
+        <input type="text" id="searchInput" placeholder="장소를 검색하세요"
+               class="w-full border border-gray-300 rounded-md p-2 text-sm mb-2" />
+        <button onclick="searchPlace()" class="w-full bg-indigo-500 text-white py-2 rounded hover:bg-indigo-600 text-sm">검색</button>
+        <div id="searchResults" class="mt-3 max-h-[300px] overflow-y-auto text-sm"></div>
+        <button onclick="closeSearchModal()" class="w-full mt-4 text-gray-600 hover:underline text-sm">닫기</button>
     </div>
 </div>
+
+<template id="location-template">
+    <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">장소 이름 (직접 입력)</label>
+            <input type="text" name="locationName" placeholder="예: 스타벅스 강남역점"
+                   class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required />
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">주소 (자동 입력)</label>
+            <input type="text" name="locationAddress" placeholder="지도를 클릭하거나 검색으로 선택"
+                   class="mt-1 w-full border-gray-300 bg-gray-100 text-gray-600 rounded-md shadow-sm sm:text-sm" readonly required />
+            <input type="hidden" name="latitude" />
+            <input type="hidden" name="longitude" />
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">내용</label>
+            <textarea name="content" rows="3" placeholder="이 장소에 대한 내용을 적어보세요."
+                      class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea>
+        </div>
+    </div>
+</template>
 
 <script>
     let map, geocoder;
@@ -144,11 +151,11 @@
     }
 
     function openSearchModal() {
-        document.getElementById('searchModal').style.display = 'block';
+        document.getElementById('searchModal').classList.remove('hidden');
     }
 
     function closeSearchModal() {
-        document.getElementById('searchModal').style.display = 'none';
+        document.getElementById('searchModal').classList.add('hidden');
         document.getElementById('searchResults').innerHTML = '';
     }
 
@@ -164,7 +171,7 @@
             if (status === kakao.maps.services.Status.OK && data.length > 0) {
                 data.forEach((place) => {
                     const div = document.createElement('div');
-                    div.className = 'search-result-item';
+                    div.className = 'cursor-pointer py-2 px-3 hover:bg-gray-100 border-b';
                     div.textContent = place.place_name;
                     div.onclick = () => {
                         const latlng = new kakao.maps.LatLng(place.y, place.x);
@@ -188,7 +195,7 @@
                     resultsContainer.appendChild(div);
                 });
             } else {
-                resultsContainer.innerHTML = '<div class="search-result-item">장소를 찾을 수 없습니다.</div>';
+                resultsContainer.innerHTML = '<div class="text-center text-gray-500 py-2">장소를 찾을 수 없습니다.</div>';
             }
         });
     }
@@ -196,30 +203,25 @@
     function addLocationEntry() {
         const container = document.getElementById('location-entries');
         const index = container.children.length;
-        const entryHTML = `
-            <div class="location-entry" id="location-entry-${index}">
-                <div class="form-group">
-                    <label>장소 이름 (직접 입력)</label>
-                    <input type="text" name="locations[${index}].locationName" placeholder="예: 스타벅스 강남역점" required />
-                </div>
-                <div class="form-group">
-                    <label>주소 (자동 입력)</label>
-                    <input type="text" name="locations[${index}].locationAddress" placeholder="지도를 클릭하거나 검색으로 선택" required readonly />
-                    <input type="hidden" name="locations[${index}].latitude" />
-                    <input type="hidden" name="locations[${index}].longitude" />
-                </div>
-                <div class="form-group">
-                    <label>내용</label>
-                    <textarea name="locations[${index}].content" rows="4" placeholder="이 장소에 대한 내용을 적어보세요." required></textarea>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', entryHTML);
+
+        const template = document.getElementById('location-template').innerHTML;
+        const div = document.createElement('div');
+        div.innerHTML = template.replaceAll('[0]', `[${index}]`);
+
+        // 수정된 name 속성 지정
+        div.querySelector('[name="locationName"]').setAttribute('name', `locations[${index}].locationName`);
+        div.querySelector('[name="locationAddress"]').setAttribute('name', `locations[${index}].locationAddress`);
+        div.querySelector('[name="latitude"]').setAttribute('name', `locations[${index}].latitude`);
+        div.querySelector('[name="longitude"]').setAttribute('name', `locations[${index}].longitude`);
+        div.querySelector('[name="content"]').setAttribute('name', `locations[${index}].content`);
+
+        container.appendChild(div);
         currentEntryIndex = index;
         updateSaveButton();
     }
 
     function updateLocationEntry(index, address, lat = null, lng = null) {
-        const entry = document.getElementById(`location-entry-${index}`);
+        const entry = document.getElementById('location-entries').children[index];
         if (entry) {
             entry.querySelector(`input[name="locations[${index}].locationAddress"]`).value = address;
             if (lat && lng) {
@@ -232,7 +234,7 @@
     function updateSaveButton() {
         const hasLocation = document.getElementById('location-entries').children.length > 0;
         document.getElementById('saveBtn').disabled = !hasLocation;
-        document.getElementById('warningMessage').style.display = hasLocation ? 'none' : 'block';
+        document.getElementById('warningMessage').classList.toggle('hidden', hasLocation);
     }
 
     window.onload = function () {
@@ -242,7 +244,6 @@
         });
     };
 </script>
-
 
 </body>
 </html>

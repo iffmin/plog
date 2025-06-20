@@ -1,191 +1,95 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>PLOG</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background-color: #f5f5f5;
-            align-items: center;
-        }
-
-        .left, .right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-            padding: 6px 12px;
-            border-radius: 4px;
-        }
-
-        a:hover {
-            background-color: #ddd;
-        }
-
-        .navbar-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: green;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .content-container {
-            display: flex;
-            max-width: 1200px;
-            margin: 40px auto;
-            gap: 30px;
-            padding: 0 20px;
-        }
-
-        .blog-wrapper {
-            flex: 2;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .map-wrapper {
-            flex: 1;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            min-width: 300px;
-            height: 500px;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            background-color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #666;
-            font-size: 18px;
-        }
-
-        .blog-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .blog-writer {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        hr {
-            margin: 20px 0;
-            border: none;
-            border-top: 1px solid #ccc;
-        }
-
-        .location-name {
-            font-size: 14px;
-            color: #888;
-            margin-top: 25px;
-            margin-bottom: 5px;
-        }
-
-        .location-content {
-            font-size: 18px;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        .action-buttons a,
-        .action-buttons button {
-            padding: 10px 15px;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .action-buttons a {
-            background-color: #4CAF50;
-            text-decoration: none;
-        }
-
-        .action-buttons button {
-            background-color: #f44336;
-            border: none;
-        }
-    </style>
+    <title>Plog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&autoload=false'}"></script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-<div class="navbar">
-    <div class="left">
-        <a th:href="@{/}" class="navbar-title">Plog</a>
-    </div>
-
-    <div class="right">
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <a th:href="@{/}" class="text-2xl font-bold text-indigo-600 font-['Pacifico']">Plog</a>
+    <div class="flex gap-3 items-center">
         <div th:if="${name == 'anonymousUser'}">
-            <a th:href="@{/login}">로그인</a>
-            <a th:href="@{/signup}">회원가입</a>
+            <a th:href="@{/login}" class="text-sm px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">로그인</a>
+            <a th:href="@{/signup}" class="text-sm px-4 py-2 rounded-full bg-indigo-500 text-white hover:bg-indigo-600">회원가입</a>
         </div>
-
-        <div th:if="${name != 'anonymousUser'}">
-            <a th:href="@{/my-planner}">내 플래너</a>
-            <a th:href="@{'/user/my_blog/' + ${name}}">내 블로그</a>
-            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'"></a>
-            <a th:href="@{/logout}">로그아웃</a>
+        <div th:if="${name != 'anonymousUser'}" class="flex gap-2 items-center">
+            <a th:href="@{/my-planner}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">내 플래너</a>
+            <a th:href="@{'/user/my_blog/' + ${name}}" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200">내 블로그</a>
+            <a th:href="@{'/user/update/' + ${name}}" th:text="${nickname} + '님'" class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200"></a>
+            <a th:href="@{/logout}" class="text-sm px-3 py-1 rounded-full bg-gray-300 text-gray-800 hover:bg-gray-400">로그아웃</a>
         </div>
     </div>
-</div>
+</header>
 
-<div class="content-container">
-    <div class="blog-wrapper">
-        <div class="blog-title" th:text="${title}">블로그 제목</div>
-        <div class="blog-writer" th:text="'작성자: ' + ${author}">작성자</div>
-        <hr>
+<main class="w-full px-6 py-10 flex flex-col lg:flex-row gap-6 max-w-[1600px] mx-auto">
+    <div class="lg:w-[62%] w-full bg-white rounded-xl shadow p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2" th:text="${title}">블로그 제목</h1>
+        <p class="text-sm text-gray-500 mb-4" th:text="'작성자: ' + ${author}">작성자</p>
+        <hr class="mb-4">
 
-        <div th:each="location : ${locations}">
-            <div class="location-name" th:text="'📍 ' + ${location.locationName}">장소명</div>
-            <div class="location-content" th:text="${location.content}">본문 내용</div>
+        <div th:each="location : ${locations}" class="mb-6">
+            <p class="text-sm text-indigo-600 font-medium mb-1" th:text="'📍 ' + ${location.locationName}">장소명</p>
+            <div class="text-base text-gray-700 whitespace-pre-line" th:text="${location.content}">본문 내용</div>
         </div>
 
-
-
-
-        <div class="action-buttons" th:if="${name == authorID or role == 'ROLE_ADMIN'}">
-            <a th:href="@{'/board/' + ${boardid} + '/update'}">수정</a>
-
+        <div class="flex gap-3 mt-6" th:if="${name == authorID or role == 'ROLE_ADMIN'}">
+            <a th:href="@{'/board/' + ${boardid} + '/update'}" class="px-4 py-2 rounded-full bg-indigo-500 text-white hover:bg-indigo-600 text-sm">수정</a>
             <form th:action="@{'/board/' + ${boardid} + '/delete'}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                <button type="submit">삭제</button>
+                <button type="submit" class="px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 text-sm">삭제</button>
             </form>
         </div>
     </div>
 
-    <div class="map-wrapper">
-        <div id="map"></div>
+    <div class="lg:w-[38%] w-full bg-white rounded-xl shadow p-6">
+        <h2 class="text-md font-semibold text-gray-700 mb-2">경로 지도</h2>
+        <div id="map" class="w-full h-[600px] rounded border"></div>
     </div>
-</div>
+</main>
+
+<script th:inline="javascript">
+    let map;
+    kakao.maps.load(() => {
+      const mapContainer = document.getElementById('map');
+      map = new kakao.maps.Map(mapContainer, {
+        center: new kakao.maps.LatLng(35.142785, 126.934717),
+        level: 5
+      });
+
+      const locations = /*[[${locations}]]*/ [];
+      const path = [];
+      const bounds = new kakao.maps.LatLngBounds();
+
+      locations.forEach(loc => {
+        if (!loc.latitude || !loc.longitude) return;
+        const latlng = new kakao.maps.LatLng(loc.latitude, loc.longitude);
+        path.push(latlng);
+        bounds.extend(latlng);
+
+        const marker = new kakao.maps.Marker({
+          position: latlng,
+          map: map
+        });
+      });
+
+      if (path.length > 1) {
+        const line = new kakao.maps.Polyline({
+          path,
+          strokeWeight: 4,
+          strokeColor: '#FF6B6B',
+          strokeOpacity: 0.8,
+          strokeStyle: 'solid'
+        });
+        line.setMap(map);
+      }
+
+      if (path.length > 0) {
+        map.setBounds(bounds);
+      }
+    });
+</script>
 
 </body>
 </html>
