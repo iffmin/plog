@@ -13,7 +13,10 @@ public class controller2 {
     public String planner(){
         return "planner";
     }
-
+    @GetMapping("/test")
+    public String test(){
+        return "test";
+    }
 }
 
 @RestController
